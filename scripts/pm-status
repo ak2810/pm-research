@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Quick health overview for all pm-research services.
-set -euo pipefail
+set -uo pipefail
 
 SERVICES=(
   pm-clob-collector
@@ -23,8 +23,8 @@ done
 echo ""
 echo "=== Heartbeat (last 90s) ==="
 for svc in "${SERVICES[@]}"; do
-  found=$(journalctl -u "$svc" --since "-90s" --grep heartbeat -q --no-pager 2>/dev/null | wc -l)
-  if [[ "$found" -gt 0 ]]; then
+  found=$(journalctl -u "$svc" --since "-90s" --grep heartbeat -q --no-pager 2>/dev/null | wc -l || echo 0)
+  if [[ "${found//[[:space:]]/}" -gt 0 ]]; then
     hb_status="OK ($found lines)"
   else
     hb_status="MISSING"
@@ -48,6 +48,8 @@ df -h /var/pm-research 2>/dev/null || df -h /
 
 echo ""
 echo "=== Recent S3 uploads (last 30m) ==="
-journalctl -u pipeline-rotator --no-pager -q --since "-30m" --grep "s3_upload_complete" 2>/dev/null \
-  | tail -8 \
-  || echo "  (none)"
+{
+  journalctl -u pipeline-rotator --no-pager -q --since "-30m" --grep "s3_upload_complete" 2>/dev/null \
+    | tail -8
+} || echo "  (none)"
+echo ""
