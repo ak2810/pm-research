@@ -103,8 +103,13 @@ class PolygonIndexer:
         backoff = [1, 2, 4, 8, 30]
         while True:
             try:
-                # Backfill via HTTPS (no persistent connection needed)
-                w3_http = AsyncWeb3(AsyncHTTPProvider(self._https_url))
+                # Backfill via HTTPS (no persistent connection needed).
+                # Large block ranges return 100K+ logs; set a generous timeout.
+                from aiohttp import ClientTimeout as _CT
+                w3_http = AsyncWeb3(AsyncHTTPProvider(
+                    self._https_url,
+                    request_kwargs={"timeout": _CT(total=120)},
+                ))
                 await self._backfill(w3_http)
                 # Live subscription via WSS (QuickNode supports eth_subscribe)
                 async with AsyncWeb3(WebSocketProvider(self._wss_url)) as w3:
