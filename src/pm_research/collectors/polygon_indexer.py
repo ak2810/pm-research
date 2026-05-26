@@ -103,9 +103,9 @@ class PolygonIndexer:
         backoff = [1, 2, 4, 8, 30]
         while True:
             try:
-                # Backfill via HTTPS (Alchemy supports 2000-block getLogs range)
-                async with AsyncWeb3(AsyncHTTPProvider(self._https_url)) as w3_http:
-                    await self._backfill(w3_http)
+                # Backfill via HTTPS (no persistent connection needed)
+                w3_http = AsyncWeb3(AsyncHTTPProvider(self._https_url))
+                await self._backfill(w3_http)
                 # Live subscription via WSS (QuickNode supports eth_subscribe)
                 async with AsyncWeb3(WebSocketProvider(self._wss_url)) as w3:
                     log.info("polygon_connected")
