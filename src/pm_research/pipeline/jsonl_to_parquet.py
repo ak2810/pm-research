@@ -40,6 +40,9 @@ def convert_file(
     Returns number of parse failures (lines that couldn't be read).
     Raises on I/O errors.
     """
+    if not schema:
+        return _convert_inferred(src, dst, compression, compression_level)
+
     failures = 0
     total_rows = 0
     writer: pq.ParquetWriter | None = None
@@ -63,7 +66,6 @@ def convert_file(
                 compression_level=compression_level,
             )
         else:
-            # Align schema — cast to established schema to handle column order/type drift
             table = table.cast(pa_schema)
         writer.write_table(table)
         total_rows += len(rows)
@@ -88,6 +90,65 @@ def convert_file(
 
     if writer is not None:
         writer.close()
+        log.info("parquet_written", src=str(src), dst=str(dst), rows=total_rows, failures=failures)
+    else:
+        log.info("jsonl_empty", src=str(src))
+
+    return failures
+
+
+def _convert_inferred(
+    src: Path,
+    dst: Path,
+    compression: str,
+    compression_level: int,
+) -> int:
+    """Conversion for mixed-schema files (e.g. binance: aggTrade + depth + bookTicker).
+
+    Collects Arrow tables per chunk, then concat with schema promotion so all
+    message-type-specific columns are preserved with nulls where absent.
+    No fixed schema — Polars infers types per chunk, PyArrow unifies at write time.
+    """
+    failures = 0
+    total_rows = 0
+    tables: list[pa.Table] = []
+    chunk: list[dict[str, Any]] = []
+
+    def _flush_inferred(rows: list[dict[str, Any]]) -> None:
+        nonlocal total_rows
+        if not rows:
+            return
+        df = pl.DataFrame(rows, infer_schema_length=len(rows))
+        tables.append(df.to_arrow())
+        total_rows += len(rows)
+
+    with gzip.open(src, "rt", encoding="utf-8") as f:
+        for lineno, line in enumerate(f, start=1):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                chunk.append(_normalize_row(json.loads(line)))
+            except json.JSONDecodeError as exc:
+                failures += 1
+                log.warning("jsonl_parse_error", src=str(src), line=lineno, error=str(exc))
+                continue
+
+            if len(chunk) >= _CHUNK_ROWS:
+                _flush_inferred(chunk)
+                chunk = []
+
+    _flush_inferred(chunk)
+
+    if tables:
+        # promote_options="default" adds null columns for fields missing in some chunks
+        combined = pa.concat_tables(tables, promote_options="default")
+        pq.write_table(
+            combined,
+            str(dst),
+            compression=compression,
+            compression_level=compression_level,
+        )
         log.info("parquet_written", src=str(src), dst=str(dst), rows=total_rows, failures=failures)
     else:
         log.info("jsonl_empty", src=str(src))

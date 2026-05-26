@@ -41,28 +41,23 @@ class S3Uploader:
         )
 
     def _verify_parquet(self, local_path: Path, s3_key: str) -> None:
+        # Verify local file is valid Parquet and get row count
+        local_meta = pq.read_metadata(local_path)
+        local_rows = local_meta.num_rows
+        local_size = local_path.stat().st_size
+
+        # Verify S3 object exists and matches local size exactly
         try:
-            self._client.head_object(Bucket=self._bucket, Key=s3_key)
+            response = self._client.head_object(Bucket=self._bucket, Key=s3_key)
         except botocore.exceptions.ClientError as exc:
             raise RuntimeError(f"S3 head_object failed for {s3_key}: {exc}") from exc
 
-        local_rows = pq.read_metadata(local_path).num_rows
-        obj = self._client.get_object(
-            Bucket=self._bucket,
-            Key=s3_key,
-            Range="bytes=0-524288",  # first 512 KB enough for header + 100 rows
-        )
-        import io
-
-        import pyarrow.parquet as pq2
-
-        buf = io.BytesIO(obj["Body"].read())
-        try:
-            remote_sample = pq2.read_table(buf)
-            if remote_sample.num_rows == 0 and local_rows > 0:
-                raise RuntimeError(f"S3 Parquet {s3_key} returned 0 rows, expected {local_rows}")
-        except Exception as exc:
-            raise RuntimeError(f"S3 Parquet read-back failed for {s3_key}: {exc}") from exc
+        remote_size = response["ContentLength"]
+        if remote_size != local_size:
+            raise RuntimeError(
+                f"S3 size mismatch for {s3_key}: local={local_size}, remote={remote_size}"
+            )
+        log.info("s3_verified", key=s3_key, rows=local_rows, size=local_size)
 
     def _verify_jsonl_gz(self, local_path: Path, s3_key: str) -> None:
         try:
