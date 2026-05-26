@@ -283,8 +283,14 @@ Signer EOA behind each proxy: resolve at build time via `ProxyCreated(address pr
 - `negRisk: false` → settles via CTF Exchange V2
 - Assets: BTC, ETH, SOL, XRP, DOGE (DOGE was not in PROMPT.md spec)
 
+### 15-Minute Markets (exist as of 2026-05-26)
+- Slug pattern: `{asset}-updown-15m-{unix_start}` (e.g. `btc-updown-15m-1779868500`)
+- Same structure as 5m: `negRisk: false`, CTF Exchange V2, tick size 0.01
+- Discovered automatically via tag_id=102127 — no code changes needed (slug.startswith(asset) filter passes)
+
 ### Non-Existent Variants
-**1-minute and 15-minute markets do NOT currently exist** (verified via tag 102127 enumeration + series-slug probe on 2026-05-26). Collector enumerates whatever tag 102127 returns without hardcoding these horizons.
+**1-minute markets do NOT currently exist** (verified via tag 102127 enumeration on 2026-05-26).
+Collector enumerates whatever tag 102127 returns without hardcoding horizons — 15m, 5m, hourly all handled.
 
 ### Discovery Method
 Poll `GET /events?tag_id=102127&closed=false` every 30s with pagination.
@@ -321,6 +327,27 @@ Both legs of a wrap/unwrap must be linked as the same logical funding event in `
 
 ---
 
+## Event Topic0 Hashes (keccak256, verified 2026-05-26)
+
+Computed via `keccak(text=canonical_sig)` using eth-utils 5.0.0. Canonical form: types only, enum→uint8.
+
+| Event | topic0 |
+|---|---|
+| `OrderFilled` | `0xd543adfd945773f1a62f74f0ee55a5e3b9b1a28262980ba90b1a89f2ea84d8ee` |
+| `OrdersMatched` | `0x174b3811690657c217184f89418266767c87e4805d09680c39fc9c031c0cab7c` |
+| `OrderPreapproved` | `0xe92c22722d9c284034b6c9f5aaec018edb3e593c0e084900b6b9d390a1182a0b` |
+| `FeeCharged` | `0x55bb3cade9d43b798a4fe5ffdd05024b2d7870df53920673bfc7e68047cd0ab1` |
+| `Transfer` (ERC-20) | `0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef` |
+| `TransferSingle` (ERC-1155) | `0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62` |
+| `TransferBatch` (ERC-1155) | `0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb` |
+| `PositionSplit` | `0x2e6bb91f8cbcda0c93623c54d0403a43514fabc40084ec96b6d5379a74786298` |
+| `PositionsMerge` | `0x6f13ca62553fcc2bcd2372180a43949c1e4cebba603901ede2f4e14f36b282ca` |
+| `PayoutRedemption` | `0x2682012a4a4f1973119f1c9b90745d1bd91fa2bab387344f044cb3586864d18d` |
+| `ConditionPreparation` | `0xab3760c3bd2bb38b5bcf54dc79802ed67338b4cf29f3054ded67ed24661e4177` |
+| `ConditionResolution` | `0xb44d84d3289691f71497564b85d4233648d9dbae8cbdbb4329f301c3a0185894` |
+
+---
+
 ## Build-Time Open Items (non-schema-critical, defer to build)
 
 1. **Oracle address** for short-dated crypto market resolution: read `ConditionPreparation.oracle` from one resolved 5m and one resolved hourly market.
@@ -341,6 +368,6 @@ The original `docs/PROMPT.md` was written for Polymarket V1. These corrections a
 | 4 | `OrderCancelled` on-chain | No such event in V2; off-chain only |
 | 5 | Gamma fields snake_case | camelCase (`conditionId`, `clobTokenIds`) |
 | 6 | `data-api/profile?username=` | Use `/v1/leaderboard?userName=` |
-| 7 | 1m/15m markets exist | Only 5m and 1h exist currently |
+| 7 | Only 5m and 1h exist | 15m markets also exist; 1m does not |
 | 8 | Hourly resolves via Chainlink | Resolves via Binance 1h candle |
 | 9 | Discovery via slug regex | Use tag_id=102127 enumeration |

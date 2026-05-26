@@ -34,19 +34,21 @@ USDC_E = "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174"
 ALL_CONTRACTS = [CTF_V2, NEG_RISK_V2, CONDITIONAL_TOKENS, PUSD, USDC_E]
 
 # Event topic0 keccak256 hashes
+# keccak256(event_signature) — computed from canonical ABI form (enum→uint8).
+# Verified: py -c "from eth_utils import keccak; print('0x'+keccak(text=sig).hex())"
 _TOPIC = {
-    "OrderFilled": "0xd0a08e8c493f9c94f29311604c9de1b4e8c8d4c06b81ffe3c5e49238b498e7b2",
-    "OrdersMatched": "0x4b3d1db2d3ee659c5765c8fa5d2f5cbe43b44e4f3ae7e82012dd0de7e19e0b7e",
-    "OrderPreapproved": "0x86f0cbee5c7a7e22d5e7a04b67a7d91a11a2090c7c8b3a6349e4f02e26d6f2d0",
-    "FeeCharged": "0x55f6d4ceba6a2b5bc8b78eb4a32b8e3f2e19f7f2c0c3b1c8e7c7b6a4d8e4c8f",
+    "OrderFilled": "0xd543adfd945773f1a62f74f0ee55a5e3b9b1a28262980ba90b1a89f2ea84d8ee",
+    "OrdersMatched": "0x174b3811690657c217184f89418266767c87e4805d09680c39fc9c031c0cab7c",
+    "OrderPreapproved": "0xe92c22722d9c284034b6c9f5aaec018edb3e593c0e084900b6b9d390a1182a0b",
+    "FeeCharged": "0x55bb3cade9d43b798a4fe5ffdd05024b2d7870df53920673bfc7e68047cd0ab1",
     "Transfer": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
     "TransferSingle": "0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62",
     "TransferBatch": "0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb",
-    "PositionSplit": "0x5e2b8f6a0f1d1b4e3cfa9f0d0b2c3e7f5a1e8c9d1f3b2a0e4d6c8b9a2f7e5c4",
-    "PositionsMerge": "0x4e1b8c9d3a0f7e6b2c5d1f8a9b3e4c2d0a7f6b5c8e1d3a9f2b4c7e0d8a1f5b",
-    "PayoutRedemption": "0x1e7b8c3d9a0f6e5b2c4d8f1a7b3e9c2d0a5f6b4c8e1d3a9f2b7c4e0d5a8f1b",
-    "ConditionPreparation": "0xab3160c9a70e65e8a7a4aa8e8d2f1b9c3d0f6e4b2a7c5d8e1f3b9a2c4d7e0f",
-    "ConditionResolution": "0xb5e0e1c3d9a0f4e7b2c6d8f1a5b9e3c2d0a7f4b6c8e1d5a9f3b2c4e7d0a8f1",
+    "PositionSplit": "0x2e6bb91f8cbcda0c93623c54d0403a43514fabc40084ec96b6d5379a74786298",
+    "PositionsMerge": "0x6f13ca62553fcc2bcd2372180a43949c1e4cebba603901ede2f4e14f36b282ca",
+    "PayoutRedemption": "0x2682012a4a4f1973119f1c9b90745d1bd91fa2bab387344f044cb3586864d18d",
+    "ConditionPreparation": "0xab3760c3bd2bb38b5bcf54dc79802ed67338b4cf29f3054ded67ed24661e4177",
+    "ConditionResolution": "0xb44d84d3289691f71497564b85d4233648d9dbae8cbdbb4329f301c3a0185894",
 }
 
 _REORG_DEPTH = 128

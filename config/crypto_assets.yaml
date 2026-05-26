@@ -1,5 +1,5 @@
 # Tracked crypto assets for Up-Down markets
-# Each entry must match the slug prefix used by Polymarket
+# Each entry is the SHORT slug prefix used by 5m/15m markets
 assets:
   - btc
   - eth
@@ -8,5 +8,10 @@ assets:
   - doge
 
 # Slug patterns by market type (informational — discovery uses tag_id, not regex)
-# 5m:    {asset}-updown-5m-{unix_start}
-# 1h:    {asset_full}-up-or-down-{month}-{day}-{year}-{hour}{am|pm}-et
+# 5m:    {asset}-updown-5m-{unix_start}          e.g. btc-updown-5m-1779868500
+# 15m:   {asset}-updown-15m-{unix_start}         e.g. btc-updown-15m-1779868500
+# 1h:    {asset_full}-up-or-down-{mon}-{d}-{y}-{h}{am|pm}-et
+#        e.g. bitcoin-up-or-down-may-27-2026-4am-et
+#
+# Short→full name mapping for hourly slug prefix detection:
+#   btc → bitcoin, eth → ethereum, sol → solana, xrp → xrp, doge → doge

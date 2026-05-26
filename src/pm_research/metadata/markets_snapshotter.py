@@ -122,4 +122,7 @@ class MarketsSnapshotter:
         if self._allowed is None:
             return True
         slug: str = market.get("slug", "") or ""
-        return any(slug.startswith(asset) for asset in self._allowed)
+        # Hourly slugs use full names ("bitcoin-…"); 5m/15m use short ("btc-…").
+        _full = {"btc": "bitcoin", "eth": "ethereum", "sol": "solana", "xrp": "xrp", "doge": "doge"}
+        prefixes = set(self._allowed) | {_full[a] for a in self._allowed if a in _full}
+        return any(slug.startswith(p) for p in prefixes)

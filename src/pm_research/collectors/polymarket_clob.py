@@ -27,6 +27,16 @@ _CLOB_BASE = "https://clob.polymarket.com"
 _TAG_ID = 102127
 _BACKOFF = [1, 2, 4, 8, 30]
 
+# Hourly market slugs use full asset names; 5m/15m use abbreviations.
+# Map short→full so both forms are recognised by the same allowed_assets set.
+_SHORT_TO_FULL: dict[str, str] = {
+    "btc": "bitcoin",
+    "eth": "ethereum",
+    "sol": "solana",
+    "xrp": "xrp",
+    "doge": "doge",
+}
+
 
 class PolymarketClobCollector:
     def __init__(
@@ -102,7 +112,12 @@ class PolymarketClobCollector:
         if market.get("negRisk"):
             return
         slug: str = market.get("slug", "") or ""
-        if not any(slug.startswith(a) for a in self._allowed):
+        # Match both short prefixes (5m/15m: "btc-updown-…") and full-name
+        # prefixes (hourly: "bitcoin-up-or-down-…").
+        allowed_prefixes = set(self._allowed) | {
+            _SHORT_TO_FULL[a] for a in self._allowed if a in _SHORT_TO_FULL
+        }
+        if not any(slug.startswith(p) for p in allowed_prefixes):
             return
 
         raw_ids: str | list[str] = market.get("clobTokenIds", "[]") or "[]"
