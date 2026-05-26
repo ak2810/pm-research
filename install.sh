@@ -14,7 +14,7 @@ echo "=== pm-research installer ==="
 
 # ── System packages ───────────────────────────────────────────────────────────
 apt-get update -qq
-apt-get install -y -qq python3.11 python3.11-venv python3.11-dev chrony curl
+apt-get install -y -qq python3.12 python3.12-venv python3.12-dev chrony curl
 
 # ── User ──────────────────────────────────────────────────────────────────────
 if ! id "$APP_USER" &>/dev/null; then
@@ -45,7 +45,7 @@ chown -R "$APP_USER:$APP_USER" "$APP_DIR"
 
 # ── Python virtualenv ─────────────────────────────────────────────────────────
 if [[ ! -d "$APP_DIR/venv" ]]; then
-    python3.11 -m venv "$APP_DIR/venv"
+    python3.12 -m venv "$APP_DIR/venv"
     echo "Created virtualenv"
 fi
 
