@@ -16,8 +16,7 @@ from pathlib import Path
 from typing import Any
 
 from web3 import AsyncWeb3
-from web3.providers import WebSocketProvider
-from web3.providers.async_rpc import AsyncHTTPProvider
+from web3.providers import AsyncHTTPProvider, WebSocketProvider
 
 from pm_research.clock import now_ns
 from pm_research.logging import get_logger
