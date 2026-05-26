@@ -276,6 +276,8 @@ class PolymarketClobCollector:
                     self._handle_frame(item, t)
 
     def _handle_frame(self, raw: dict[str, Any], t_recv_ns: int) -> None:
+        self._writer.write({"feed": "pm_clob", "t_recv_ns": t_recv_ns, **raw})
+
         try:
             msg = parse_ws_frame(raw)
         except (ValueError, Exception) as exc:
@@ -289,7 +291,3 @@ class PolymarketClobCollector:
                 if tid not in self._subscribed:
                     self._subscribed[tid] = (msg.condition_id, ws_end_dt)
                     log.info("ws_new_market_subscribed", token_id=tid[:20], slug=msg.slug)
-
-        self._writer.write(
-            {"feed": "pm_clob", "t_recv_ns": t_recv_ns, **raw}
-        )

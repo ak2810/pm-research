@@ -117,10 +117,25 @@ class NewMarketMsg(_Base):
         return int(self.timestamp) * 1_000_000
 
 
-class MarketResolvedMsg(NewMarketMsg):
-    event_type: Literal["market_resolved"]  # type: ignore[assignment]
+class MarketResolvedMsg(_Base):
+    """Actual wire shape (live-captured 2026-05-26):
+    {id, market, assets_ids, winning_asset_id, winning_outcome,
+     event_message, timestamp, event_type, tags}
+    Note: event_message can be None on settlement.
+    """
+    event_type: Literal["market_resolved"]
+    id: str
+    market: str
+    assets_ids: list[str]
     winning_asset_id: str
     winning_outcome: str
+    event_message: object | None = None
+    timestamp: str
+    tags: list[object] = []
+
+    @property
+    def timestamp_ns(self) -> int:
+        return int(self.timestamp) * 1_000_000
 
 
 class LastTradePriceMsg(_Base):
