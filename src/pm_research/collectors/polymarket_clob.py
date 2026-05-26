@@ -8,6 +8,7 @@
 - active:false new_market events are NOT auto-subscribed (verified fact).
 """
 import asyncio
+import datetime
 import json
 from typing import Any
 
@@ -111,6 +112,20 @@ class PolymarketClobCollector:
             return
         if market.get("negRisk"):
             return
+
+        # Filter by endDate: must be in the future and within configured window
+        end_date_str: str = market.get("endDate", "") or ""
+        if end_date_str:
+            try:
+                end_dt = datetime.datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
+                now_utc = datetime.datetime.now(datetime.timezone.utc)
+                if end_dt <= now_utc:
+                    return  # already expired
+                if end_dt > now_utc + datetime.timedelta(hours=self._max_age_hours):
+                    return  # too far in future, not yet active
+            except ValueError:
+                pass
+
         slug: str = market.get("slug", "") or ""
         # Match both short prefixes (5m/15m: "btc-updown-…") and full-name
         # prefixes (hourly: "bitcoin-up-or-down-…").

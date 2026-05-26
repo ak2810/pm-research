@@ -80,7 +80,7 @@ class PipelineRotator:
             if gz_path.suffix == ".tmp":
                 continue
 
-            feed = gz_path.parts[-(5 if "date=" in str(gz_path) else 4)]
+            feed = gz_path.parts[-4]  # /.../{feed}/date=.../hour=.../data.jsonl.gz
             self._process_file(gz_path, feed, date, hour)
 
     def _process_file(self, gz_path: Path, feed: str, date: str, hour: str) -> None:
