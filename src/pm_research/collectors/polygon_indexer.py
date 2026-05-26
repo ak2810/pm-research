@@ -160,8 +160,15 @@ class PolygonIndexer:
 
     # ── Log dispatch ──────────────────────────────────────────────────────────
 
+    @staticmethod
+    def _to_hex(val: Any) -> str:
+        """Convert HexBytes or bytes to 0x-prefixed hex string."""
+        if isinstance(val, (bytes, bytearray)):
+            return "0x" + val.hex()
+        return str(val)
+
     def _handle_log(self, entry: dict[str, Any]) -> None:
-        block_hash: str = entry.get("blockHash", "") or ""
+        block_hash: str = self._to_hex(entry.get("blockHash", "") or b"")
         log_index: int = entry.get("logIndex", 0) or 0
         dedup_key = (block_hash, log_index)
 
@@ -173,24 +180,26 @@ class PolygonIndexer:
             self._seen.clear()
 
         t_recv_ns: int = entry.get("_t_recv_ns", now_ns())
-        topics: list[str] = entry.get("topics", []) or []
+        raw_topics: list[Any] = entry.get("topics", []) or []
+        topics: list[str] = [self._to_hex(t) for t in raw_topics]
         if not topics:
             return
 
         address: str = (entry.get("address", "") or "").lower()
         topic0: str = topics[0]
+        data: str = self._to_hex(entry.get("data", b"") or b"")
 
         common = {
             "block_number": entry.get("blockNumber", 0),
             "block_hash": block_hash,
-            "tx_hash": entry.get("transactionHash", ""),
+            "tx_hash": self._to_hex(entry.get("transactionHash", b"") or b""),
             "log_index": log_index,
             "t_recv_ns": t_recv_ns,
         }
 
         record: dict[str, Any] | None = None
         try:
-            record = self._decode(topic0, address, topics, entry.get("data", "0x"), common)
+            record = self._decode(topic0, address, topics, data, common)
         except Exception as exc:
             log.warning("log_decode_error", topic0=topic0, address=address, error=str(exc))
 
