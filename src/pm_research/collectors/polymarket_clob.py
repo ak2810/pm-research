@@ -15,6 +15,7 @@ from typing import Any
 
 import httpx
 import websockets
+import websockets.exceptions
 
 from pm_research.clock import now_ns
 from pm_research.logging import get_logger
@@ -206,6 +207,21 @@ class PolymarketClobCollector:
                 attempt = 0
             except asyncio.CancelledError:
                 raise
+            except websockets.exceptions.ConnectionClosedError as exc:
+                # Server-initiated close (code 1006 / "no close frame") at 5m boundaries
+                # is expected behavior — do not escalate backoff, reconnect after 1s.
+                log.info("pm_server_close", code=exc.code if hasattr(exc, "code") else None, reason=str(exc))
+                self._writer.write(
+                    {
+                        "feed": "pm_clob",
+                        "t_recv_ns": now_ns(),
+                        "event_type": "disconnect",
+                        "reason": str(exc),
+                        "attempt": 0,
+                    }
+                )
+                attempt = 0
+                await asyncio.sleep(1.0)
             except Exception as exc:
                 delay = _BACKOFF[min(attempt, len(_BACKOFF) - 1)]
                 log.warning("pm_reconnect", attempt=attempt, error=str(exc), delay=delay)
