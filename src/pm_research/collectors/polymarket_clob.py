@@ -103,9 +103,9 @@ class PolymarketClobCollector:
                 for event in events:
                     for market in event.get("markets", []) or []:
                         self._consider_market(market)
-                if len(events) < 500:
+                if not events:
                     break
-                offset += 500
+                offset += len(events)
 
     def _consider_market(self, market: dict[str, Any]) -> None:
         if not market.get("acceptingOrders"):
