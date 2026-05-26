@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+# Quick health overview for all pm-research services.
+set -euo pipefail
+
+SERVICES=(
+  pm-clob-collector
+  binance-collector
+  polygon-indexer
+  pm-metadata-snapshotter
+  wallet-attribution
+  pipeline-rotator
+  heartbeat-watchdog
+)
+
+echo "=== Service Status  $(date -u '+%Y-%m-%dT%H:%M:%SZ') ==="
+for svc in "${SERVICES[@]}"; do
+  state=$(systemctl is-active "$svc" 2>/dev/null || echo "unknown")
+  restarts=$(systemctl show "$svc" --property=NRestarts --value 2>/dev/null || echo "?")
+  pid=$(systemctl show "$svc" --property=MainPID --value 2>/dev/null || echo "?")
+  printf "  %-32s %-8s  restarts=%-3s  pid=%s\n" "$svc" "$state" "$restarts" "$pid"
+done
+
+echo ""
+echo "=== Heartbeat (last 90s) ==="
+for svc in "${SERVICES[@]}"; do
+  found=$(journalctl -u "$svc" --since "-90s" --grep heartbeat -q --no-pager 2>/dev/null | wc -l)
+  if [[ "$found" -gt 0 ]]; then
+    hb_status="OK ($found lines)"
+  else
+    hb_status="MISSING"
+  fi
+  printf "  %-32s %s\n" "$svc" "$hb_status"
+done
+
+echo ""
+echo "=== Active .tmp files ==="
+tmp_count=0
+while IFS= read -r -d '' f; do
+  size=$(du -sh "$f" 2>/dev/null | cut -f1)
+  printf "  %s\t%s\n" "$size" "$f"
+  ((tmp_count++)) || true
+done < <(find /var/pm-research/data -name "*.tmp" -print0 2>/dev/null)
+[[ "$tmp_count" -eq 0 ]] && echo "  (none)"
+
+echo ""
+echo "=== Disk ==="
+df -h /var/pm-research 2>/dev/null || df -h /
+
+echo ""
+echo "=== Recent S3 uploads (last 30m) ==="
+journalctl -u pipeline-rotator --no-pager -q --since "-30m" --grep "s3_upload_complete" 2>/dev/null \
+  | tail -8 \
+  || echo "  (none)"

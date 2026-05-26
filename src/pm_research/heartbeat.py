@@ -39,6 +39,7 @@ class Heartbeat:
                 await self._ping(client)
 
     async def _ping(self, client: httpx.AsyncClient) -> None:
+        log.info("heartbeat_ping", service=self._service)
         if not self._hc_url:
             return
         try:
