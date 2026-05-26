@@ -10,21 +10,14 @@ from typing import Any
 
 from pm_research.logging import get_logger
 from pm_research.pipeline.jsonl_to_parquet import convert_file
-from pm_research.pipeline.parquet_schemas import (
-    BINANCE_AGG_TRADE,
-    PM_CLOB_BOOK,
-    PM_CLOB_PRICE_CHANGE,
-    POLYGON_ERC20_TRANSFER,
-    POLYGON_ORDER_FILLED,
-)
 from pm_research.storage.s3 import S3Uploader
 
 log = get_logger(__name__)
 
 _FEED_SCHEMAS: dict[str, Any] = {
-    "pm_clob": {"book": PM_CLOB_BOOK, "price_change": PM_CLOB_PRICE_CHANGE},
-    "polygon": {"OrderFilled": POLYGON_ORDER_FILLED, "Transfer": POLYGON_ERC20_TRANSFER},
-    "binance": {},  # mixed stream types — no schema cast, use inferred types
+    "pm_clob": {},   # mixed event types — inferred schema preserves all fields
+    "polygon": {},   # mixed event types — inferred schema preserves all fields
+    "binance": {},   # mixed stream types — inferred schema preserves all fields
 }
 
 _PATH_RE = re.compile(r"date=(\d{4}-\d{2}-\d{2})/hour=(\d{2})/data\.jsonl\.gz$")
