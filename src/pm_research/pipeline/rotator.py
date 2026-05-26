@@ -24,7 +24,7 @@ log = get_logger(__name__)
 _FEED_SCHEMAS: dict[str, Any] = {
     "pm_clob": {"book": PM_CLOB_BOOK, "price_change": PM_CLOB_PRICE_CHANGE},
     "polygon": {"OrderFilled": POLYGON_ORDER_FILLED, "Transfer": POLYGON_ERC20_TRANSFER},
-    "binance": {"aggTrade": BINANCE_AGG_TRADE},
+    "binance": {},  # mixed stream types — no schema cast, use inferred types
 }
 
 _PATH_RE = re.compile(r"date=(\d{4}-\d{2}-\d{2})/hour=(\d{2})/data\.jsonl\.gz$")

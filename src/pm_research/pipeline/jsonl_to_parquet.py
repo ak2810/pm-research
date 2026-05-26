@@ -15,6 +15,14 @@ from pm_research.logging import get_logger
 log = get_logger(__name__)
 
 
+def _normalize_row(row: dict[str, Any]) -> dict[str, Any]:
+    """Stringify nested list/dict values so all columns are scalar (Parquet-safe)."""
+    return {
+        k: json.dumps(v) if isinstance(v, (list, dict)) else v
+        for k, v in row.items()
+    }
+
+
 def convert_file(
     src: Path,
     dst: Path,
@@ -37,7 +45,7 @@ def convert_file(
             if not line:
                 continue
             try:
-                rows.append(json.loads(line))
+                rows.append(_normalize_row(json.loads(line)))
             except json.JSONDecodeError as exc:
                 failures += 1
                 log.warning("jsonl_parse_error", src=str(src), line=lineno, error=str(exc))
@@ -62,7 +70,10 @@ def convert_file(
 def _cast_schema(
     df: pl.DataFrame, schema: dict[str, pl.PolarsDataType]
 ) -> pl.DataFrame:
-    """Cast known columns to target types; drop columns not in schema; fill missing with null."""
+    """Cast known columns to target types; drop columns not in schema; fill missing with null.
+    Empty schema → return df as-is (inferred types kept)."""
+    if not schema:
+        return df
     exprs: list[pl.Expr] = []
     for col, dtype in schema.items():
         if col in df.columns:
