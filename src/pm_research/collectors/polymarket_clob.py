@@ -52,8 +52,8 @@ class PolymarketClobCollector:
         self._discovery_interval = discovery_interval_s
         self._max_age_hours = market_max_age_hours
 
-        # token_id → condition_id mapping for active subscriptions
-        self._subscribed: dict[str, str] = {}
+        # token_id → (condition_id, end_dt) for active subscriptions
+        self._subscribed: dict[str, tuple[str, datetime.datetime]] = {}
         self._tasks: list[asyncio.Task[None]] = []
 
     async def start(self) -> None:
@@ -83,6 +83,12 @@ class PolymarketClobCollector:
             await asyncio.sleep(self._discovery_interval)
 
     async def _discover(self) -> None:
+        # Purge tokens whose market has already ended
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        expired = [tid for tid, (_, end_dt) in self._subscribed.items() if end_dt <= now_utc]
+        for tid in expired:
+            del self._subscribed[tid]
+
         async with httpx.AsyncClient() as client:
             offset = 0
             while True:
@@ -91,7 +97,7 @@ class PolymarketClobCollector:
                     params={
                         "tag_id": _TAG_ID,
                         "closed": "false",
-                        "limit": 500,
+                        "limit": 100,
                         "offset": offset,
                     },
                     timeout=15.0,
@@ -103,8 +109,6 @@ class PolymarketClobCollector:
                 for event in events:
                     for market in event.get("markets", []) or []:
                         self._consider_market(market)
-                if not events:
-                    break
                 offset += len(events)
 
     def _consider_market(self, market: dict[str, Any]) -> None:
@@ -115,16 +119,19 @@ class PolymarketClobCollector:
 
         # Filter by endDate: must be in the future and within configured window
         end_date_str: str = market.get("endDate", "") or ""
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        end_dt: datetime.datetime | None = None
         if end_date_str:
             try:
                 end_dt = datetime.datetime.fromisoformat(end_date_str.replace("Z", "+00:00"))
-                now_utc = datetime.datetime.now(datetime.timezone.utc)
+                if not end_dt.tzinfo:
+                    end_dt = end_dt.replace(tzinfo=datetime.timezone.utc)
                 if end_dt <= now_utc:
                     return  # already expired
                 if end_dt > now_utc + datetime.timedelta(hours=self._max_age_hours):
-                    return  # too far in future, not yet active
-            except ValueError:
-                pass
+                    return  # too far in future
+            except (ValueError, TypeError):
+                return  # unparseable endDate → skip conservatively
 
         slug: str = market.get("slug", "") or ""
         # Match both short prefixes (5m/15m: "btc-updown-…") and full-name
@@ -142,9 +149,10 @@ class PolymarketClobCollector:
             token_ids = raw_ids
 
         condition_id: str = market.get("conditionId", "") or ""
+        effective_end_dt = end_dt if end_dt is not None else now_utc + datetime.timedelta(hours=self._max_age_hours)
         for tid in token_ids:
             if tid not in self._subscribed:
-                self._subscribed[tid] = condition_id
+                self._subscribed[tid] = (condition_id, effective_end_dt)
                 log.info("market_discovered", token_id=tid[:20], slug=slug)
 
     # ── Collector ─────────────────────────────────────────────────────────────
@@ -178,9 +186,10 @@ class PolymarketClobCollector:
         while not self._subscribed:
             await asyncio.sleep(1.0)
 
-        log.info("pm_connecting", token_count=len(self._subscribed))
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        token_ids = [tid for tid, (_, end_dt) in self._subscribed.items() if end_dt > now_utc]
+        log.info("pm_connecting", token_count=len(token_ids))
         async with websockets.connect(_WS_URL, ping_interval=60) as ws:
-            token_ids = list(self._subscribed)
             sub = {
                 "assets_ids": token_ids,
                 "type": "market",
@@ -196,6 +205,8 @@ class PolymarketClobCollector:
                 }
             )
             log.info("pm_subscribed", count=len(token_ids))
+            if not token_ids:
+                return  # nothing to subscribe to yet
 
             while True:
                 try:
@@ -225,9 +236,11 @@ class PolymarketClobCollector:
 
         # Auto-discover new markets from WS (active=False → queue for Gamma poll)
         if isinstance(msg, NewMarketMsg) and msg.active:
+            now_utc = datetime.datetime.now(datetime.timezone.utc)
+            ws_end_dt = now_utc + datetime.timedelta(hours=self._max_age_hours)
             for tid in msg.clob_token_ids:
                 if tid not in self._subscribed:
-                    self._subscribed[tid] = msg.condition_id
+                    self._subscribed[tid] = (msg.condition_id, ws_end_dt)
                     log.info("ws_new_market_subscribed", token_id=tid[:20], slug=msg.slug)
 
         self._writer.write(
