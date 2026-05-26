@@ -1,0 +1,41 @@
+{
+  "id": "2359818",
+  "question": "Bitcoin Up or Down - May 27, 3:55AM-4:00AM ET",
+  "market": "0x525bc811d0ef8672e26e903371ebbfbe3a6d24bf4c55aac41ddd74499d09ffa3",
+  "slug": "btc-updown-5m-1779868500",
+  "description": "This market will resolve to \"Up\" if the Bitcoin price at the end of the time range specified in the title is greater than or equal to the price at the beginning of that range. Otherwise, it will resolve to \"Down\".\nThe resolution source for this market is information from Chainlink, specifically the BTC/USD data stream available at https://data.chain.link/streams/btc-usd.\nPlease note that this market is about the price according to Chainlink data stream BTC/USD, not according to other sources or spot markets.",
+  "assets_ids": [
+    "83569573729417379012269004181894995036217275080784648418283894009080008909768",
+    "79967973888886103818890600603138835205030373156116212860536029322374885776001"
+  ],
+  "outcomes": ["Up", "Down"],
+  "event_message": {
+    "id": "526320",
+    "ticker": "btc-updown-5m-1779868500",
+    "slug": "btc-updown-5m-1779868500",
+    "title": "Bitcoin Up or Down - May 27, 3:55AM-4:00AM ET",
+    "description": "This market will resolve to \"Up\" if the Bitcoin price at the end of the time range specified in the title is greater than or equal to the price at the beginning of that range. Otherwise, it will resolve to \"Down\".\nThe resolution source for this market is information from Chainlink, specifically the BTC/USD data stream available at https://data.chain.link/streams/btc-usd.\nPlease note that this market is about the price according to Chainlink data stream BTC/USD, not according to other sources or spot markets."
+  },
+  "timestamp": "1779782572324",
+  "event_type": "new_market",
+  "tags": [],
+  "condition_id": "0x525bc811d0ef8672e26e903371ebbfbe3a6d24bf4c55aac41ddd74499d09ffa3",
+  "active": false,
+  "clob_token_ids": [
+    "83569573729417379012269004181894995036217275080784648418283894009080008909768",
+    "79967973888886103818890600603138835205030373156116212860536029322374885776001"
+  ],
+  "sports_market_type": "",
+  "line": "",
+  "game_start_time": "",
+  "order_price_min_tick_size": "0.01",
+  "group_item_title": "",
+  "taker_base_fee": "1000",
+  "fees_enabled": true,
+  "fee_schedule": {
+    "exponent": "1",
+    "rate": "0.07",
+    "taker_only": true,
+    "rebate_rate": "0.2"
+  }
+}

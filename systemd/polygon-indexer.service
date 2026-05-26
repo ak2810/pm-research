@@ -1,0 +1,20 @@
+[Unit]
+Description=Polygon On-Chain Indexer
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pm-research
+Group=pm-research
+WorkingDirectory=/opt/pm-research
+EnvironmentFile=/etc/pm-research/.env
+ExecStart=/opt/pm-research/venv/bin/python -m pm_research.entrypoints.polygon_indexer
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=polygon-indexer
+
+[Install]
+WantedBy=multi-user.target

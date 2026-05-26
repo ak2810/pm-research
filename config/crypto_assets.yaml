@@ -1,0 +1,12 @@
+# Tracked crypto assets for Up-Down markets
+# Each entry must match the slug prefix used by Polymarket
+assets:
+  - btc
+  - eth
+  - xrp
+  - sol
+  - doge
+
+# Slug patterns by market type (informational — discovery uses tag_id, not regex)
+# 5m:    {asset}-updown-5m-{unix_start}
+# 1h:    {asset_full}-up-or-down-{month}-{day}-{year}-{hour}{am|pm}-et

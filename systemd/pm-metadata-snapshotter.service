@@ -1,0 +1,20 @@
+[Unit]
+Description=Polymarket Metadata Snapshotter
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pm-research
+Group=pm-research
+WorkingDirectory=/opt/pm-research
+EnvironmentFile=/etc/pm-research/.env
+ExecStart=/opt/pm-research/venv/bin/python -m pm_research.entrypoints.metadata_snapshotter
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pm-metadata-snapshotter
+
+[Install]
+WantedBy=multi-user.target

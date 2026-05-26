@@ -1,0 +1,13 @@
+# Seed wallets for wallet attribution tracking
+# proxyWallet resolved via GET /v1/leaderboard?userName=<name> on 2026-05-26
+# signer EOA: resolve at build time from ProxyFactory ProxyCreated event
+wallets:
+  - username: gabagool22
+    proxy_wallet: "0x6031b6eed1c97e853c6e0f03ad3ce3529351f96d"
+    signer_eoa: null  # resolve from ProxyCreated event at build time
+    note: "Primary target for reconciliation (24h fill count + PnL ±0.1%)"
+
+  - username: ohanism
+    proxy_wallet: "0x89b5cdaaa4866c1e738406712012a630b4078beb"
+    signer_eoa: null  # resolve from ProxyCreated event at build time
+    note: "Secondary target; active since ~Feb 2026 (pre-pUSD migration)"

@@ -1,0 +1,20 @@
+[Unit]
+Description=Heartbeat Watchdog (monitors all pm-research services)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pm-research
+Group=pm-research
+WorkingDirectory=/opt/pm-research
+EnvironmentFile=/etc/pm-research/.env
+ExecStart=/opt/pm-research/venv/bin/python -m pm_research.entrypoints.heartbeat_watchdog
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=heartbeat-watchdog
+
+[Install]
+WantedBy=multi-user.target

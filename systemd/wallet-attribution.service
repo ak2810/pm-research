@@ -1,0 +1,20 @@
+[Unit]
+Description=Wallet Attribution Graph Builder
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pm-research
+Group=pm-research
+WorkingDirectory=/opt/pm-research
+EnvironmentFile=/etc/pm-research/.env
+ExecStart=/opt/pm-research/venv/bin/python -m pm_research.entrypoints.wallet_attribution
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=wallet-attribution
+
+[Install]
+WantedBy=multi-user.target

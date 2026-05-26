@@ -1,0 +1,20 @@
+[Unit]
+Description=Pipeline Rotator (JSONL.gz to Parquet to S3)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pm-research
+Group=pm-research
+WorkingDirectory=/opt/pm-research
+EnvironmentFile=/etc/pm-research/.env
+ExecStart=/opt/pm-research/venv/bin/python -m pm_research.entrypoints.pipeline_rotator
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=pipeline-rotator
+
+[Install]
+WantedBy=multi-user.target
