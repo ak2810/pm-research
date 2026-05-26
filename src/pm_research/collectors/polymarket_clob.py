@@ -1,15 +1,16 @@
 """Polymarket CLOB WebSocket collector.
 
-- Discovers markets via Gamma API tag 102127 every 30s.
+- Discovers markets via slug-based probing (5m, 15m, hourly windows).
 - Also picks up new_market events from WS (custom_feature_enabled=true).
 - Subscribes to all active token_ids via market channel.
 - Handles all 7 server message types.
-- Reconnects on disconnect; fetches fresh book snapshot on reconnect.
+- Reconnects every ~4.5min to rotate subscriptions as 5m/15m windows roll.
 - active:false new_market events are NOT auto-subscribed (verified fact).
 """
 import asyncio
 import datetime
 import json
+import time
 from typing import Any
 
 import httpx
@@ -24,19 +25,22 @@ log = get_logger(__name__)
 
 _WS_URL = "wss://ws-subscriptions-clob.polymarket.com/ws/market"
 _GAMMA_BASE = "https://gamma-api.polymarket.com"
-_CLOB_BASE = "https://clob.polymarket.com"
-_TAG_ID = 102127
 _BACKOFF = [1, 2, 4, 8, 30]
 
-# Hourly market slugs use full asset names; 5m/15m use abbreviations.
-# Map short→full so both forms are recognised by the same allowed_assets set.
-_SHORT_TO_FULL: dict[str, str] = {
+# short → full name for hourly market slugs
+_SHORT_TO_HOURLY: dict[str, str] = {
     "btc": "bitcoin",
     "eth": "ethereum",
     "sol": "solana",
     "xrp": "xrp",
-    "doge": "doge",
+    "doge": "dogecoin",
 }
+
+# How long before each window boundary to reconnect (seconds)
+_RECONNECT_BEFORE_S = 30
+
+# Reconnect period for 5m markets (reconnect every ~4.5 min to rotate)
+_WS_SESSION_MAX_S = 270
 
 
 class PolymarketClobCollector:
@@ -52,7 +56,7 @@ class PolymarketClobCollector:
         self._discovery_interval = discovery_interval_s
         self._max_age_hours = market_max_age_hours
 
-        # token_id → (condition_id, end_dt) for active subscriptions
+        # token_id → (condition_id, end_dt)
         self._subscribed: dict[str, tuple[str, datetime.datetime]] = {}
         self._tasks: list[asyncio.Task[None]] = []
 
@@ -83,43 +87,88 @@ class PolymarketClobCollector:
             await asyncio.sleep(self._discovery_interval)
 
     async def _discover(self) -> None:
-        # Purge tokens whose market has already ended
         now_utc = datetime.datetime.now(datetime.timezone.utc)
+
+        # Purge tokens whose market has already ended
         expired = [tid for tid, (_, end_dt) in self._subscribed.items() if end_dt <= now_utc]
         for tid in expired:
             del self._subscribed[tid]
 
+        slugs = self._candidate_slugs(now_utc)
         async with httpx.AsyncClient() as client:
-            offset = 0
-            while True:
-                r = await client.get(
-                    f"{_GAMMA_BASE}/events",
-                    params={
-                        "tag_id": _TAG_ID,
-                        "closed": "false",
-                        "limit": 100,
-                        "offset": offset,
-                    },
-                    timeout=15.0,
-                )
-                r.raise_for_status()
-                events: list[dict[str, Any]] = r.json()
-                if not events:
-                    break
-                for event in events:
-                    for market in event.get("markets", []) or []:
-                        self._consider_market(market)
-                offset += len(events)
+            results = await asyncio.gather(
+                *[self._fetch_slug(client, s) for s in slugs],
+                return_exceptions=True,
+            )
+        for res in results:
+            if not isinstance(res, list):
+                continue
+            for event in res:
+                for market in event.get("markets", []) or []:
+                    self._consider_market(market, now_utc)
 
-    def _consider_market(self, market: dict[str, Any]) -> None:
+    def _candidate_slugs(self, now: datetime.datetime) -> list[str]:
+        """Generate slug candidates for current and upcoming 5m/15m/hourly windows."""
+        slugs: list[str] = []
+        ts = int(now.timestamp())
+
+        for short in self._allowed:
+            # 5m: current window + next 3 (cover ~20 min of look-ahead)
+            base5 = (ts // 300) * 300
+            for i in range(4):
+                slugs.append(f"{short}-updown-5m-{base5 + i * 300}")
+
+            # 15m: current window + next 2
+            base15 = (ts // 900) * 900
+            for i in range(3):
+                slugs.append(f"{short}-updown-15m-{base15 + i * 900}")
+
+            # Hourly: current hour + next 2
+            full = _SHORT_TO_HOURLY.get(short, short)
+            hour_base = now.replace(minute=0, second=0, microsecond=0)
+            for i in range(3):
+                slugs.append(self._hourly_slug(full, hour_base + datetime.timedelta(hours=i)))
+
+        return slugs
+
+    @staticmethod
+    def _hourly_slug(asset_full: str, utc_dt: datetime.datetime) -> str:
+        # ET = UTC-4 (EDT, valid ~Mar-Nov); acceptable approximation for slug generation
+        et_dt = utc_dt - datetime.timedelta(hours=4)
+        month = et_dt.strftime("%b").lower()
+        day = et_dt.day
+        year = et_dt.year
+        h = et_dt.hour
+        if h == 0:
+            ampm = "12am"
+        elif h < 12:
+            ampm = f"{h}am"
+        elif h == 12:
+            ampm = "12pm"
+        else:
+            ampm = f"{h - 12}pm"
+        return f"{asset_full}-up-or-down-{month}-{day}-{year}-{ampm}-et"
+
+    async def _fetch_slug(self, client: httpx.AsyncClient, slug: str) -> list[dict[str, Any]]:
+        try:
+            r = await client.get(
+                f"{_GAMMA_BASE}/events",
+                params={"slug": slug, "limit": 1},
+                timeout=10.0,
+            )
+            if r.status_code == 200:
+                return r.json()  # type: ignore[no-any-return]
+        except Exception:
+            pass
+        return []
+
+    def _consider_market(self, market: dict[str, Any], now_utc: datetime.datetime) -> None:
         if not market.get("acceptingOrders"):
             return
         if market.get("negRisk"):
             return
 
-        # Filter by endDate: must be in the future and within configured window
         end_date_str: str = market.get("endDate", "") or ""
-        now_utc = datetime.datetime.now(datetime.timezone.utc)
         end_dt: datetime.datetime | None = None
         if end_date_str:
             try:
@@ -127,21 +176,13 @@ class PolymarketClobCollector:
                 if not end_dt.tzinfo:
                     end_dt = end_dt.replace(tzinfo=datetime.timezone.utc)
                 if end_dt <= now_utc:
-                    return  # already expired
+                    return
                 if end_dt > now_utc + datetime.timedelta(hours=self._max_age_hours):
-                    return  # too far in future
+                    return
             except (ValueError, TypeError):
-                return  # unparseable endDate → skip conservatively
+                return  # reject markets with unparseable endDate
 
         slug: str = market.get("slug", "") or ""
-        # Match both short prefixes (5m/15m: "btc-updown-…") and full-name
-        # prefixes (hourly: "bitcoin-up-or-down-…").
-        allowed_prefixes = set(self._allowed) | {
-            _SHORT_TO_FULL[a] for a in self._allowed if a in _SHORT_TO_FULL
-        }
-        if not any(slug.startswith(p) for p in allowed_prefixes):
-            return
-
         raw_ids: str | list[str] = market.get("clobTokenIds", "[]") or "[]"
         if isinstance(raw_ids, str):
             token_ids: list[str] = json.loads(raw_ids)
@@ -169,7 +210,6 @@ class PolymarketClobCollector:
                 delay = _BACKOFF[min(attempt, len(_BACKOFF) - 1)]
                 log.warning("pm_reconnect", attempt=attempt, error=str(exc), delay=delay)
                 attempt += 1
-                # Write disconnect event
                 self._writer.write(
                     {
                         "feed": "pm_clob",
@@ -182,13 +222,19 @@ class PolymarketClobCollector:
                 await asyncio.sleep(delay)
 
     async def _connect_session(self) -> None:
-        # Wait for at least one subscription before connecting
+        # Wait for at least one active subscription
         while not self._subscribed:
             await asyncio.sleep(1.0)
 
         now_utc = datetime.datetime.now(datetime.timezone.utc)
         token_ids = [tid for tid, (_, end_dt) in self._subscribed.items() if end_dt > now_utc]
+        if not token_ids:
+            await asyncio.sleep(5.0)
+            return
+
         log.info("pm_connecting", token_count=len(token_ids))
+        deadline = time.monotonic() + _WS_SESSION_MAX_S
+
         async with websockets.connect(_WS_URL, ping_interval=60) as ws:
             sub = {
                 "assets_ids": token_ids,
@@ -205,15 +251,18 @@ class PolymarketClobCollector:
                 }
             )
             log.info("pm_subscribed", count=len(token_ids))
-            if not token_ids:
-                return  # nothing to subscribe to yet
 
             while True:
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    log.info("pm_session_rotate")
+                    break  # reconnect to refresh subscriptions
+
+                timeout = min(remaining, 30.0)
                 try:
-                    raw = await asyncio.wait_for(ws.recv(), timeout=90.0)
+                    raw = await asyncio.wait_for(ws.recv(), timeout=timeout)
                 except TimeoutError:
-                    log.warning("pm_recv_timeout")
-                    break
+                    continue  # check deadline, loop
 
                 t = now_ns()
                 try:
@@ -222,7 +271,6 @@ class PolymarketClobCollector:
                     log.warning("pm_json_error", error=str(exc))
                     continue
 
-                # Server sends single object OR array
                 items: list[dict[str, Any]] = payload if isinstance(payload, list) else [payload]
                 for item in items:
                     self._handle_frame(item, t)
@@ -234,7 +282,6 @@ class PolymarketClobCollector:
             log.warning("pm_parse_error", error=str(exc), keys=list(raw.keys()))
             return
 
-        # Auto-discover new markets from WS (active=False → queue for Gamma poll)
         if isinstance(msg, NewMarketMsg) and msg.active:
             now_utc = datetime.datetime.now(datetime.timezone.utc)
             ws_end_dt = now_utc + datetime.timedelta(hours=self._max_age_hours)
