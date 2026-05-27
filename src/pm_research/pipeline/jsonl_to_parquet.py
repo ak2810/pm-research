@@ -1,7 +1,8 @@
 """JSONL.gz → Parquet conversion with strict schema enforcement.
 
 Parse failures are counted, not aborted. Count goes into S3 object metadata.
-Processes in chunks to avoid OOM on large files (4M+ rows).
+Two-pass streaming for inferred-schema feeds: pass 1 discovers unified schema
+(no data held), pass 2 writes row groups. Memory bounded to one chunk at a time.
 """
 import gzip
 import json
@@ -16,7 +17,7 @@ from pm_research.logging import get_logger
 
 log = get_logger(__name__)
 
-_CHUNK_ROWS = 100_000  # rows per batch — ~50MB RAM per chunk
+_CHUNK_ROWS = 50_000  # rows per batch — smaller = less RAM per chunk
 
 
 def _normalize_row(row: dict[str, Any]) -> dict[str, Any]:
@@ -103,24 +104,18 @@ def _convert_inferred(
     compression: str,
     compression_level: int,
 ) -> int:
-    """Conversion for mixed-schema files (e.g. binance: aggTrade + depth + bookTicker).
+    """Two-pass streaming conversion for mixed-schema files.
 
-    Collects Arrow tables per chunk, then concat with schema promotion so all
-    message-type-specific columns are preserved with nulls where absent.
-    No fixed schema — Polars infers types per chunk, PyArrow unifies at write time.
+    Pass 1: read in chunks, accumulate only Arrow schemas (data discarded immediately).
+             Unify schemas so all columns from all event types are captured.
+    Pass 2: open ParquetWriter with unified schema, stream rows → write row groups.
+             Memory is bounded to one chunk (~_CHUNK_ROWS rows) at all times.
     """
     failures = 0
-    total_rows = 0
-    tables: list[pa.Table] = []
-    chunk: list[dict[str, Any]] = []
 
-    def _flush_inferred(rows: list[dict[str, Any]]) -> None:
-        nonlocal total_rows
-        if not rows:
-            return
-        df = pl.DataFrame(rows, infer_schema_length=len(rows))
-        tables.append(df.to_arrow())
-        total_rows += len(rows)
+    # --- Pass 1: schema discovery (no data retained) ---
+    schemas: list[pa.Schema] = []
+    chunk: list[dict[str, Any]] = []
 
     with gzip.open(src, "rt", encoding="utf-8") as f:
         for lineno, line in enumerate(f, start=1):
@@ -133,27 +128,90 @@ def _convert_inferred(
                 failures += 1
                 log.warning("jsonl_parse_error", src=str(src), line=lineno, error=str(exc))
                 continue
-
             if len(chunk) >= _CHUNK_ROWS:
-                _flush_inferred(chunk)
+                schemas.append(
+                    pl.DataFrame(chunk, infer_schema_length=len(chunk)).to_arrow().schema
+                )
                 chunk = []
 
-    _flush_inferred(chunk)
-
-    if tables:
-        # promote_options="default" adds null columns for fields missing in some chunks
-        combined = pa.concat_tables(tables, promote_options="default")
-        pq.write_table(
-            combined,
-            str(dst),
-            compression=compression,
-            compression_level=compression_level,
+    if chunk:
+        schemas.append(
+            pl.DataFrame(chunk, infer_schema_length=len(chunk)).to_arrow().schema
         )
-        log.info("parquet_written", src=str(src), dst=str(dst), rows=total_rows, failures=failures)
-    else:
-        log.info("jsonl_empty", src=str(src))
+        chunk = []
 
+    if not schemas:
+        log.info("jsonl_empty", src=str(src))
+        return failures
+
+    try:
+        unified_schema = pa.unify_schemas(schemas)
+    except pa.ArrowInvalid:
+        # Fall back: cast everything to string on type conflict
+        all_names: dict[str, pa.DataType] = {}
+        for s in schemas:
+            for field in s:
+                if field.name not in all_names:
+                    all_names[field.name] = field.type
+                elif all_names[field.name] != field.type:
+                    all_names[field.name] = pa.large_utf8()
+        unified_schema = pa.schema(
+            [pa.field(n, t) for n, t in all_names.items()]
+        )
+
+    # --- Pass 2: streaming write ---
+    total_rows = 0
+    writer = pq.ParquetWriter(
+        str(dst),
+        unified_schema,
+        compression=compression,
+        compression_level=compression_level,
+    )
+
+    with gzip.open(src, "rt", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                chunk.append(_normalize_row(json.loads(line)))
+            except json.JSONDecodeError:
+                continue  # already counted in pass 1
+            if len(chunk) >= _CHUNK_ROWS:
+                writer.write_table(_cast_to_unified(chunk, unified_schema))
+                total_rows += len(chunk)
+                chunk = []
+
+    if chunk:
+        writer.write_table(_cast_to_unified(chunk, unified_schema))
+        total_rows += len(chunk)
+
+    writer.close()
+    log.info("parquet_written", src=str(src), dst=str(dst), rows=total_rows, failures=failures)
     return failures
+
+
+def _cast_to_unified(rows: list[dict[str, Any]], schema: pa.Schema) -> pa.Table:
+    """Normalize a chunk to the unified schema: add null columns for missing fields,
+    cast existing columns to their target types."""
+    df = pl.DataFrame(rows, infer_schema_length=len(rows))
+    tbl = df.to_arrow()
+    arrays: list[pa.Array] = []
+    for field in schema:
+        if field.name in tbl.schema.names:
+            col = tbl.column(field.name)
+            if col.type != field.type:
+                try:
+                    col = col.cast(field.type, safe=False)
+                except (pa.ArrowInvalid, pa.ArrowNotImplementedError):
+                    col = pa.nulls(len(tbl), type=field.type)
+        else:
+            col = pa.nulls(len(tbl), type=field.type)
+        arrays.append(col)
+    return pa.table(
+        {field.name: arrays[i] for i, field in enumerate(schema)},
+        schema=schema,
+    )
 
 
 def _cast_schema(
