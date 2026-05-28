@@ -138,14 +138,16 @@ def reconcile(
     api_trades = fetch_api_trades(_OHANISM_PROXY, window_start_s, window_end_s)
     api_count = len(api_trades)
 
-    # API PnL: sum usdcSize * direction (SELL=+, BUY=-)
+    # API PnL: data-api side = TAKER's side. ohanism is maker.
+    # side='BUY' (taker bought from ohanism) → ohanism sold tokens, received USDC → +
+    # side='SELL' (taker sold to ohanism) → ohanism bought tokens, paid USDC → -
     api_pnl = Decimal("0")
     for t in api_trades:
         usdc_size = Decimal(str(t.get("usdcSize", 0) or 0))
         side = t.get("side", "")
-        if side == "SELL":
+        if side == "BUY":
             api_pnl += usdc_size
-        elif side == "BUY":
+        elif side == "SELL":
             api_pnl -= usdc_size
 
     count_gap_pct = abs(local_count - api_count) / max(api_count, 1) * 100

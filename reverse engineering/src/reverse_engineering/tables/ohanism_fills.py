@@ -255,7 +255,7 @@ def build_ohanism_fills(
     Raises:
         RuntimeError: If POLYGON_HTTPS_URL not configured.
     """
-    from reverse_engineering.io.catalog import Partition, list_local_partitions
+    from reverse_engineering.io.catalog import list_local_partitions
 
     log.info("build_ohanism_fills_start", dates=dates)
 
@@ -265,34 +265,41 @@ def build_ohanism_fills(
     ltp_lookup = _build_ltp_lookup(dates)
     log.info("ltp_lookup_built", rows=len(ltp_lookup))
 
-    all_partitions: list[Partition] = []
-    for _date in dates:
-        all_partitions.extend(list_local_partitions("polygon"))
     date_set = set(dates)
-    partitions = [p for p in all_partitions if p.date in date_set]
+    partitions = [p for p in list_local_partitions("polygon") if p.date in date_set]
+
+    # Pre-collect all ohanism fills to find all unique block numbers upfront,
+    # then fetch block times in one go (avoids repeated RPC bursts per hour).
+    log.info("prefetch_fills_for_block_numbers", partitions=len(partitions))
+    raw_all_list: list[pl.DataFrame] = []
+    for partition in sorted(partitions, key=lambda p: (p.date, p.hour)):
+        df = extract_raw_fills(partition.date, partition.hour).collect()
+        if len(df) > 0:
+            raw_all_list.append(df)
+
+    if not raw_all_list:
+        return pl.DataFrame(schema={c: pl.Utf8 for c in OHANISM_FILLS_COLUMNS})
+
+    all_block_numbers = (
+        pl.concat([df.select("block_number") for df in raw_all_list])["block_number"]
+        .unique()
+        .to_list()
+    )
+    log.info("fetching_all_block_times", distinct_blocks=len(all_block_numbers))
+    bt_map = fetch_block_times([int(b) for b in all_block_numbers])
+    bt_df = pl.DataFrame(
+        {
+            "block_number": pl.Series(list(bt_map.keys()), dtype=pl.Int64),
+            "t_block_ns": pl.Series(list(bt_map.values()), dtype=pl.Int64),
+        }
+    )
+    log.info("block_times_ready", fetched=len(bt_map))
 
     all_fills: list[pl.DataFrame] = []
 
-    for partition in sorted(partitions, key=lambda p: (p.date, p.hour)):
-        raw = extract_raw_fills(partition.date, partition.hour).collect()
-        if len(raw) == 0:
-            continue
-        log.info(
-            "fills_extracted",
-            date=partition.date,
-            hour=partition.hour,
-            count=len(raw),
-        )
+    for raw in raw_all_list:
+        log.info("fills_processing", count=len(raw))
 
-        # Derive t_block_ns via RPC
-        block_numbers = raw["block_number"].unique().to_list()
-        bt_map = fetch_block_times([int(b) for b in block_numbers])
-        bt_df = pl.DataFrame(
-            {
-                "block_number": pl.Series(list(bt_map.keys()), dtype=pl.Int64),
-                "t_block_ns": pl.Series(list(bt_map.values()), dtype=pl.Int64),
-            }
-        )
         raw = raw.join(bt_df, on="block_number", how="left")
 
         # Backfill flag
@@ -364,20 +371,20 @@ def build_ohanism_fills(
         )
 
         # Rebate: 0.2 * 0.07 * min(price, 1-price) * size for maker fills
+        _fee_factor = float(_REBATE_RATE * _TAKER_FEE_RATE)
         raw = raw.with_columns(
-            pl.when(pl.col("is_maker"))
-            .then(
-                pl.col("_price_f64").map_elements(
-                    lambda p: float(
-                        _REBATE_RATE
-                        * _TAKER_FEE_RATE
-                        * min(Decimal(str(p)), Decimal("1") - Decimal(str(p)))
-                    ),
-                    return_dtype=pl.Float64,
+            (
+                pl.when(pl.col("is_maker"))
+                .then(
+                    _fee_factor
+                    * pl.min_horizontal(pl.col("_price_f64"), 1.0 - pl.col("_price_f64"))
+                    * pl.col("_size_f64")
                 )
-                * pl.col("_size_f64")
-            )
-            .otherwise(pl.lit(0.0))
+                .otherwise(pl.lit(0.0))
+            ).alias("_rebate_f64")
+        )
+        raw = raw.with_columns(
+            pl.col("_rebate_f64")
             .map_elements(lambda x: _dec6(x), return_dtype=pl.Utf8)
             .alias("rebate_received")
         )

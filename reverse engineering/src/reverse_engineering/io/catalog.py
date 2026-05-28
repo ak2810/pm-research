@@ -115,7 +115,7 @@ def list_local_partitions(feed: str) -> list[Partition]:
         return partitions
 
     for parquet_file in feed_dir.glob("date=*/hour=*/data.parquet"):
-        m = _DATE_HOUR_RE.search(str(parquet_file))
+        m = _DATE_HOUR_RE.search(parquet_file.as_posix())
         if not m:
             continue
         partitions.append(Partition(feed=feed, date=m.group(1), hour=int(m.group(2))))

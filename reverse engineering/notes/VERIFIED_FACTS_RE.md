@@ -88,4 +88,46 @@ is passed. Fix applied to local_reader.py and integration tests.
 
 ---
 
-*(Further Phase 1+ facts appended as analysis proceeds.)*
+---
+
+**Fact**: `data-api.polymarket.com/activity` has NO date filtering and caps pagination
+at ~3,500 most-recent items. For wallets with high fill rates (ohanism: ~800/hr),
+historical windows older than 4-5 hours are unreachable via pagination.
+**Source**: Empirical — attempted offset=3500 returned HTTP 400; date params ignored.
+**Date**: 2026-05-29
+**Evidence**: `GET /activity?user=...&limit=500&offset=3500` → 400 Bad Request.
+All timestamp-filter params (startTime, endTime, start, end, before, after) were
+tested and all ignored (returned timestamps around current time regardless).
+
+---
+
+**Fact**: pm_clob `last_trade_price.side` = the BOOK LEVEL that was taken (maker's
+side / the order book side), NOT the taker's action direction.
+- `side='SELL'` = the ASK level was lifted (a SELL order was filled) → taker BUY
+  → ohanism (maker) SOLD tokens → ohanism_side='SELL'
+- `side='BUY'` = the BID level was crossed (a BUY order was filled) → taker SELL
+  → ohanism (maker) BOUGHT tokens → ohanism_side='BUY'
+Convention: same as the PRICE LEVEL's side in the order book (bids=BUY, asks=SELL).
+Different from the data-api `side` which is the TAKER's action.
+**Source**: Empirical analysis of cross-tab between polygon side field and pm_clob
+`last_trade_price.side`. For fills where ltp.asset_id == polygon.token_id (same token),
+100% of cases had ohanism_side == ltp.side (both are the maker's side / ASK-or-BID side).
+For fills where ltp.asset_id != polygon.token_id (different token in same tx), 100%
+agreement with TAKER direction interpretation.
+**Date**: 2026-05-29
+
+---
+
+**Fact**: ~28% of ohanism's fills are from markets that the pm_clob collector did NOT
+subscribe to (short-lived 5m markets that expired before the collector could subscribe).
+For these fills: t_ws_ns = t_block_ns (block_approx fallback), and market metadata
+(asset_symbol, horizon, outcome_side) is unavailable via pm_clob new_market events.
+Fix for Phase 2: query Gamma API `/markets?condition_id=<cid>` for each condition_id
+from pm_clob book events → retrieve slug, endDate, startDate.
+**Source**: pm_clob book event analysis — 299/1651 unique fill token_ids not in any
+book event; new_market events have 0 intersection with fill token_ids.
+**Date**: 2026-05-29
+
+---
+
+*(Further Phase 2+ facts appended as analysis proceeds.)*

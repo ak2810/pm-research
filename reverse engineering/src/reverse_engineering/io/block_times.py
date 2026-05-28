@@ -24,9 +24,9 @@ if TYPE_CHECKING:
 log = structlog.get_logger(__name__)
 
 _BATCH_SIZE = 100
-_SLEEP_BETWEEN_BATCHES = 0.05
-_RETRY_SLEEP = 2.0
-_MAX_RETRIES = 3
+_SLEEP_BETWEEN_BATCHES = 0.8
+_RETRY_SLEEP = 10.0
+_MAX_RETRIES = 5
 _BLOCK_TIMES_CACHE = "block_times.parquet"
 
 
