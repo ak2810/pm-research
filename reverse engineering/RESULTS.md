@@ -116,3 +116,57 @@ Cumulative findings, updated per phase. Each phase adds a section.
 | orderHash stitching | ✓ PASS | 50/50 coherent |
 | Sign discipline | ✓ PASS | Verified via price formula, 100% consistent |
 
+---
+
+## Phase 2 — Maker/Taker Decomposition (2026-05-29)
+
+### Analysis window: 2026-05-27 hours 03-23, 21,451 fills
+
+**On-chain PnL note**: All figures below use on-chain data (polygon `OrderFilled`).
+data-api not used for downstream comparison — API date-filter limitation (BLOCKER-002).
+On-chain is ground truth.
+
+### Headline: 100% Maker, 100% Direct Submission
+- Maker: **100.0%** (21,451/21,451). Taker: 0. Pure MM confirmed.
+- Builder = 0x00*64 for **100% of fills** — direct CLOB REST submission, no relay.
+
+### Side balance (ohanism's side)
+| Side | Count | Pct | Notional tokens |
+|------|-------|-----|-----------------|
+| SELL (Up tokens sold) | 17,895 | 83.4% | 341,437 |
+| BUY (Up tokens bought) | 3,556 | 16.6% | 75,634 |
+
+**83/17 SELL-dominant** — not delta-neutral. ohanism systematically quotes ASK-heavy.
+Carries sustained short-Up / long-Down exposure across markets.
+
+### Fills per market
+- Median 6 fills/token, P90=33, max=167 → **continuous quoting**, not one-off.
+
+### Price at fill
+- p5=0.110, p50=0.620, p95=0.910 — fills happen at 62% Up probability on average.
+- Full range [0.01, 0.98] — quoting deep OTM through deep ITM.
+
+### Inventory analysis (Phase 7.1 pulled forward)
+| Metric | Value |
+|--------|-------|
+| Max total dollar exposure | $167,059 USDC |
+| Mean total dollar exposure | $85,039 USDC |
+| P90 exposure | $150,784 USDC |
+| Median peak abs inventory/market | 85.6 tokens |
+| P90 peak abs | 558.7 tokens |
+| **Net-zero final positions** | **0.0%** |
+| Median abs final position | 74.76 tokens |
+
+**Critical finding — inventory-grindy, not delta-neutral**:
+Net-zero final positions = 0.0%. ohanism NEVER closes inventory before market expiry.
+Every market ends with residual position carried to settlement. This means:
+- Ohanism relies on settlement payoffs, not inventory unwinding
+- The 83.4% SELL side dominance = systematic short-Up carry across all markets
+- A-S γ (inventory aversion) may be SMALL or structured differently than canonical A-S
+
+**Working hypothesis revision**: ohanism is a delta-biased MM with systematic short-Up
+exposure. Not pure delta-neutral. May be running a directional view (Up less likely than
+market prices) OR exploiting asymmetric taker demand for Up tokens in a trending market.
+
+Plots: output/plots/inventory_lifecycle.png, total_dollar_exposure.png,
+peak_inventory_distribution.png. Full stats: output/results/phase2_stats.json.

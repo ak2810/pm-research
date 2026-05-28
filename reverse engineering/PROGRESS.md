@@ -26,10 +26,13 @@ Phase 2 — Maker/Taker Decomposition:
 4. Builder fingerprint analysis.
 Acceptance: ACCEPTANCE.md Phase 2 all boxes checked.
 
-**To run Phase 2**:
-1. Build condition_id→slug lookup from pm_clob book events + Gamma API
-2. Join to ohanism_fills and write enriched ohanism_fills.parquet
-3. Compute stats in notebook 02_maker_taker.ipynb
+**Phase 2 STATUS: Stats + inventory plots complete. Market metadata still pending.**
+
+## NEXT
+1. Wait for Gamma slug lookup to complete → rebuild ohanism_fills with full metadata
+   (asset_symbol, horizon, outcome_side, time_to_expiry_s, start_strike_price)
+2. Commit all Phase 2 code + plots
+3. Then begin Phase 3 — Order Lifecycle Reconstruction
 
 ---
 

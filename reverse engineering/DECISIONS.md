@@ -98,6 +98,29 @@ read, convert back to string for storage.
 
 ---
 
+## 2026-05-29 — Inventory behavior changes Layer 2 prior
+
+**Observation**: 0% net-zero final positions across 1,651 markets. ohanism always
+carries residual inventory to settlement. 83.4% SELL side (short-Up dominant).
+
+**Implication for Layer 2 (structural ML)**:
+- The A-S inventory aversion parameter γ likely encodes a DIRECTIONAL BIAS, not
+  just risk aversion. ohanism may have γ < 0 on the Up token (prefers being short).
+- Alternative: γ is small and the strategy is more "take-what-comes" than active
+  inventory management.
+- The Layer 2 likelihood must distinguish between (a) inventory aversion = 0 (no
+  skewing, just quoting fair value) and (b) directional bias (systematic short-Up
+  quote skew).
+
+**Decision**: In Layer 2, test BOTH:
+1. Pure fair-value quoter (no inventory term)
+2. A-S with signed inventory aversion (allowing γ < 0 for directional bias)
+Compare log-likelihood and AIC/BIC. The better-fitting model advances to SHAP.
+
+**Date**: 2026-05-29
+
+---
+
 ## 2026-05-28 — Random seeds
 
 **All random seeds**: `numpy.random.seed(42)`, `sklearn` estimators with

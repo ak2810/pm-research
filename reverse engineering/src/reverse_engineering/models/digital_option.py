@@ -23,8 +23,8 @@ from __future__ import annotations
 import math
 from typing import TYPE_CHECKING
 
-from scipy import optimize
-from scipy.stats import norm
+from scipy import optimize  # type: ignore[import-untyped]
+from scipy.stats import norm  # type: ignore[import-untyped]
 
 if TYPE_CHECKING:
     from decimal import Decimal
