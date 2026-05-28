@@ -67,4 +67,25 @@ is passed. Fix applied to local_reader.py and integration tests.
 
 ---
 
+---
+
+**Fact**: ohanism `OrderFilled` price formula (empirically verified against hour=21, 747 fills):
+- `side=0` (taker BUY): `price = maker_amount_decimal / taker_amount_decimal`; all 670 side=0 rows give price ∈ [0.04, 0.97].
+  maker_amount = USDC received by ohanism (the maker), taker_amount = tokens delivered to taker.
+  ohanism_side = SELL (ohanism sold tokens, received USDC).
+  size = taker_amount_decimal (token quantity).
+- `side=1` (taker SELL): `price = taker_amount_decimal / maker_amount_decimal`; all 77 side=1 rows give price ∈ [0.02, 0.95].
+  maker_amount = tokens received by ohanism, taker_amount = USDC paid by ohanism.
+  ohanism_side = BUY (ohanism bought tokens, paid USDC).
+  size = maker_amount_decimal (token quantity).
+- `fee_decimal = '0'` for ALL maker fills (confirmed, 747/747 = 0).
+- `builder = '0' * 64` for ALL fills → direct submission, no relay.
+- ohanism is ALWAYS maker in all 747 fills in the cached hour (0 taker fills).
+- All fills on CTF Exchange V2 (`0xe111...`); 0 on Neg Risk V2.
+**Source**: Empirical price range check — `formula_A_in_0_1=670/670` for side=0,
+`formula_B_in_0_1=77/77` for side=1. Local polygon parquet, date=2026-05-28 hour=21.
+**Date**: 2026-05-29
+
+---
+
 *(Further Phase 1+ facts appended as analysis proceeds.)*
