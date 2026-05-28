@@ -47,4 +47,24 @@ requires Boost + CMake + `-DUSE_GPU=ON`.
 
 ---
 
-*(Phase 1+ facts appended as analysis proceeds.)*
+---
+
+**Fact**: EC2 .env file path is `/etc/pm-research/.env` (mode 0600, owned by root).
+Non-secret values confirmed: `S3_BUCKET=pm-research-data`,
+`AWS_DEFAULT_REGION=eu-west-1`.
+**Source**: `sudo cat /etc/pm-research/.env | grep -E '^(S3_BUCKET|AWS_DEFAULT_REGION)='`
+on ubuntu@34.244.229.19 via SSH.
+**Date**: 2026-05-29
+
+---
+
+**Fact**: Local Polars 0.20.31 `scan_parquet` raises `DuplicateError` with
+"invalid Hive partition schema" when reading files from Hive-partitioned paths
+(e.g. `feed=X/date=Y/hour=Z/data.parquet`) unless `hive_partitioning=False`
+is passed. Fix applied to local_reader.py and integration tests.
+**Source**: Empirical — observed error 2026-05-29.
+**Date**: 2026-05-29
+
+---
+
+*(Further Phase 1+ facts appended as analysis proceeds.)*

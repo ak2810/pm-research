@@ -25,9 +25,16 @@ Cumulative findings, updated per phase. Each phase adds a section.
   (multiple "1 warning generated" messages; no exception thrown)
 - CPU fallback is acceptable per DECISIONS.md (Layer 3 dataset is tiny)
 
-**S3 sync test** (make sync):
-- BLOCKED — see BLOCKERS.md BLOCKER-001. Local .env file missing.
-- All other Phase 0 items complete; sync to be run after .env created.
+**S3 sync test** (make sync — 2026-05-29):
+- RESOLVED. All 4 feeds downloaded (date=2026-05-28 hour=21):
+  - pm_clob: 279.84 MB, 46 columns, lazily readable ✓
+  - polygon: 34.96 MB, 33 columns, lazily readable ✓
+  - binance: 21.64 MB, 20 columns, lazily readable ✓
+  - pm_meta: 0.57 MB, 5 columns, lazily readable ✓
+- Bugs fixed: config.py parent index (parents[4]→parents[3] for .env,
+  parents[3]→parents[2] for output/), hive_partitioning=False in scan_parquet,
+  removed add_logger_name from structlog config (incompatible with PrintLogger).
+- Cache at: output/cache/feed={name}/date=2026-05-28/hour=21/data.parquet
 
 **EC2 health check**:
 - pm-clob-collector status: `active` (SSH to ubuntu@34.244.229.19 succeeded)

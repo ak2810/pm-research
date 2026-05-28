@@ -30,7 +30,7 @@ class TestPhase1Reconciliation:
         cfg = get_settings()
         polygon_files = list(cfg.cache_dir.glob("feed=polygon/date=*/hour=*/data.parquet"))
         assert len(polygon_files) > 0, "No polygon partitions in cache"
-        lf = pl.scan_parquet(str(polygon_files[0]), low_memory=True)
+        lf = pl.scan_parquet(str(polygon_files[0]), low_memory=True, hive_partitioning=False)
         cols = list(lf.schema)
         assert "block_number" in cols or len(cols) > 0
 
@@ -41,5 +41,5 @@ class TestPhase1Reconciliation:
         cfg = get_settings()
         pm_files = list(cfg.cache_dir.glob("feed=pm_clob/date=*/hour=*/data.parquet"))
         assert len(pm_files) > 0, "No pm_clob partitions in cache"
-        lf = pl.scan_parquet(str(pm_files[0]), low_memory=True)
+        lf = pl.scan_parquet(str(pm_files[0]), low_memory=True, hive_partitioning=False)
         assert len(list(lf.schema)) > 0

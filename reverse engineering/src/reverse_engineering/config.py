@@ -12,7 +12,7 @@ from pathlib import Path
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_PARENT_ENV = Path(__file__).parents[4] / ".env"
+_PARENT_ENV = Path(__file__).parents[3] / ".env"
 
 
 class Settings(BaseSettings):
@@ -38,27 +38,27 @@ class Settings(BaseSettings):
     @property
     def cache_dir(self) -> Path:
         """Local Parquet cache synced from S3."""
-        return Path(__file__).parents[3] / "output" / "cache"
+        return Path(__file__).parents[2] / "output" / "cache"
 
     @property
     def tables_dir(self) -> Path:
         """Output tables directory."""
-        return Path(__file__).parents[3] / "output" / "tables"
+        return Path(__file__).parents[2] / "output" / "tables"
 
     @property
     def models_dir(self) -> Path:
         """Output models directory (gitignored; hash+S3 URI in DECISIONS)."""
-        return Path(__file__).parents[3] / "output" / "models"
+        return Path(__file__).parents[2] / "output" / "models"
 
     @property
     def plots_dir(self) -> Path:
         """Output plots directory."""
-        return Path(__file__).parents[3] / "output" / "plots"
+        return Path(__file__).parents[2] / "output" / "plots"
 
     @property
     def results_dir(self) -> Path:
         """Output results directory."""
-        return Path(__file__).parents[3] / "output" / "results"
+        return Path(__file__).parents[2] / "output" / "results"
 
     @property
     def s3_prefix(self) -> str:

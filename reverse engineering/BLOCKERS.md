@@ -27,7 +27,8 @@ with valid AWS credentials having `s3:GetObject` + `s3:ListBucket` on
 **Workaround**: All other Phase 0 acceptance items are complete. Once .env is
 created with valid credentials, run `make sync` and update RESULTS.md.
 
-**Does not block Phase 0 commit**: All code, docs, tests, GPU check, and EC2
-health check are complete. Committing now; mark BLOCKER-001 resolved after
-.env is populated.
+**RESOLVED 2026-05-29T22:28:00Z**: IAM user `pm-research-re` created with
+least-privilege policy (notes/iam_policy_pm_research_re.json). Local .env
+written. S3 access confirmed (4 feeds downloaded). make sync succeeded.
+All Phase 0 acceptance gates now pass.
 
