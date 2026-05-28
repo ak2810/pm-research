@@ -93,3 +93,28 @@ from §11 of MASTER_PROMPT.md.
     (e.g. `"00"*32`), while `order_hash`/`tx_hash`/`block_hash` carry the `0x`
     prefix. Normalize before comparing. A zero builder (`"00"*32`) means direct
     submission (no relay) — meaningful for §10.
+
+20. **pm_clob `last_trade_price.side` = the BOOK LEVEL taken (maker's side),
+    NOT the taker's action direction.** Verified Phase 1 empirically: for fills
+    where ltp.asset_id == polygon fill token_id, `ltp.side` matches `ohanism_side`
+    (the maker's side) 100% of the time. Interpretation:
+    - `side='SELL'`: the ASK level was lifted (ohanism sold tokens, taker bought)
+    - `side='BUY'`: the BID level was crossed (ohanism bought tokens, taker sold)
+    This is the OPPOSITE of the data-api `activity.side` convention (which is the
+    taker's action). Do NOT use pm_clob ltp.side as a taker-direction indicator.
+
+21. **pm_clob covers only ~72% of on-chain ohanism fills.** Short-lived 5m markets
+    (and some 15m markets) expire before the collector can subscribe. The collector
+    receives a `new_market` WS event and subscribes, but if the market is active for
+    only 5 minutes and the collector's discovery cycle is 30s, a market may expire
+    before any `book`/`price_change`/`last_trade_price` events are captured.
+    Consequence: 28% of fills have no pm_clob t_ws_ns match (fallback = t_block_ns)
+    and no pm_clob-derived market metadata.
+    **In Phase 4–6 regressions**: must check whether the missing 28% are
+    systematically different from the covered 72% by:
+    (a) asset — does pm_clob undercover a specific symbol?
+    (b) horizon — are 5m markets more affected than 15m or 1h?
+    (c) time-of-day — does coverage drop in low-activity hours when the collector
+        may fall behind on subscriptions?
+    If the 28% are NOT representative, regressions on the pm_clob-covered subset
+    will have selection bias. Weight or correct accordingly.
