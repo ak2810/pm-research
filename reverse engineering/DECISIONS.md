@@ -98,6 +98,23 @@ read, convert back to string for storage.
 
 ---
 
+## 2026-05-29 — Phase 4 σ_implied v1→v2: fix quote-post-time proxy (BLOCKER-003 resolution)
+
+**Problem (BLOCKER-003)**: σ_implied_v1 used the earliest ohanism FILL as the
+quote-placement proxy. At market open S_t≈S_0, fair value=0.5 ∀σ. The σ only sets
+the half-spread, not the midpoint. By fill time, spot has drifted and σ_implied
+encodes drift noise. R² plateau at 0.29 is mathematically inevitable.
+
+**Fix (v2)**: Use the EARLIEST pm_clob price_change NEW_ORDER (size increase) where
+a subsequent ohanism fill at the same (token_id, price) occurs within the market
+lifetime. Attribution: earliest level_change with subsequent fill at same price.
+t_post_ns = t_ws_ns of that level_change. p_posted = canonical Up price at that level.
+
+**Expected**: σ<0 should disappear; L1 R² should approach ≥0.4.
+**Date**: 2026-05-29
+
+---
+
 ## 2026-05-29 — Phase 4 annualization convention
 
 **Question**: How to annualize σ in the digital-option inversion?
