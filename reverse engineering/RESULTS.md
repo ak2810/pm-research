@@ -221,10 +221,43 @@ that applies a FILTER on when to activate (likely: spot move magnitude threshold
 
 ### A3 + Part B — Final conclusions
 
-Phase 4 gate: **R² ≥ 0.4 at quote-placement-time** (PASSIVE confirmed at full scale).
-XRP directional check: 66.5% long-Up over 49h = trending market + rebate, NOT alpha.
-Part A + Part B complete. Decision rule fired cleanly: PASSIVE.
-Phase 4 σ-fitting may now begin.
+Phase 4 gate: **R² ≥ 0.4 at quote-placement-time** (CONDITIONAL HYBRID confirmed).
+XRP directional check: 64.7% long-Up over 49h = trending market + rebate, NOT alpha.
+Part A + Part B complete. Decision rule: CONDITIONAL HYBRID (B1=17ms, 2.6% activation).
+Phase 4 σ-fitting in progress.
+
+---
+
+## Phase 4 — σ Recipe (2026-05-29)
+
+### Step 4.1 — σ_implied dataset (COMPLETE)
+
+**Dataset**: ohanism_fills_full.parquet, 48,258 fills with full metadata.
+**Per-market approach**: earliest ohanism fill = quote-placement-time proxy.
+**Annualization**: τ_years = τ_seconds / 31,557,600 (24/7 calendar year).
+
+**Drops** (2,725 total markets):
+- atm_spot |log(S0/S_t)| < 0.0001: 550 (20.2%) — spot at strike at first fill
+- atm_price |p-0.5| < 0.02 or τ≤0: 65 (2.4%)
+- σ≤0 or σ>15 (proxy artifacts): 50 (1.8%)
+- **Retained: 2,060 markets (75.6%)**
+
+**σ_implied by (asset, horizon):**
+
+| Asset | Horizon | n | Median σ | IQR | Min | Max |
+|-------|---------|---|---------|-----|-----|-----|
+| BTC | 5m | 365 | **0.327** | 0.241 | 0.069 | 6.29 |
+| BTC | 15m | 144 | **0.299** | 0.170 | 0.072 | 2.68 |
+| ETH | 5m | 417 | **0.355** | 0.231 | 0.086 | 1.66 |
+| ETH | 15m | 148 | **0.358** | 0.194 | 0.149 | 3.70 |
+| SOL | 5m | 393 | **0.426** | 0.228 | 0.115 | 4.78 |
+| SOL | 15m | 139 | **0.435** | 0.207 | 0.182 | 1.29 |
+| XRP | 5m | 342 | **0.393** | 0.246 | 0.129 | 2.49 |
+| XRP | 15m | 112 | **0.400** | 0.209 | 0.096 | 1.84 |
+
+**Plausibility gate ✓**: BTC 5m median = 0.327, in [0.3, 3.0]. SOL/XRP higher than BTC (consistent with higher altcoin realized vol). 15m slightly lower than 5m for BTC (mean-reversion effect at longer horizons).
+
+**Output**: output/tables/sigma_implied.parquet (2,060 rows)
 
 ---
 

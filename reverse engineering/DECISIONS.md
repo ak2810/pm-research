@@ -98,6 +98,37 @@ read, convert back to string for storage.
 
 ---
 
+## 2026-05-29 — Phase 4 annualization convention
+
+**Question**: How to annualize σ in the digital-option inversion?
+
+**Convention chosen**: τ in years = τ_seconds / 31,557,600 (365.25 × 24 × 3600).
+Crypto trades 24/7 so we use calendar-year seconds, not equity-trading-day convention.
+This matches the σ_estimators which also use 24/7 annualization (see sigma_estimators.py).
+
+**Consistency check**: A 5m market with τ = 300s → τ_years = 300/31,557,600 ≈ 9.5×10⁻⁶.
+σ_implied = log(S_0/S_t) / (√τ_years × Φ⁻¹(1−p)). For BTC at p=0.6, S_t=S_0×1.01
+(1% above strike), τ = 9.5e-6 years: σ = log(1/1.01) / (√(9.5e-6) × Φ⁻¹(0.4))
+= −0.00995 / (0.00308 × −0.253) ≈ 12.8 annualized → physically impossible for BTC.
+This means at 1% ATM displacement and 5m TTE, the fit is degenerate. Expected:
+the price at this displacement encodes a huge σ. The σ_implied is only well-defined
+when |log(S_0/S_t)| is not too large relative to σ×√τ.
+
+**ε thresholds** (document before running):
+- Spot boundary: |log(S_0/S_t)| < 0.0001 → drop (ATM at quote time)
+- Price boundary: |p_quoted − 0.5| < 0.02 → drop (near ATM in probability space)
+- Price boundary: p_quoted < 0.02 or p_quoted > 0.98 → drop (near 0/1 → σ blows up)
+- σ_implied sanity cap: drop markets where |σ_implied| > 15 (clearly degenerate)
+
+**Expected BTC 5m range**: σ_implied ≈ 0.5–2.0 annualized. BTC 1-day volatility is
+typically 0.03–0.08 (daily), annualized = 0.03×√365.25 ≈ 0.57. For 5m markets
+with small ATM displacement (0.02–0.1 range), σ_implied should be in [0.3, 2.0].
+If median is outside this range, τ units or canonical p convention is wrong → STOP.
+
+**Date**: 2026-05-29
+
+---
+
 ## 2026-05-29 — Phase 4 σ-gate revised for passive quoter
 
 **Question**: What R² threshold for Layer 1 σ-regression is appropriate given Phase 3
