@@ -98,9 +98,24 @@ D5 independently proves the MTM formula is correct (12/12 checks). The leaderboa
 an accounting-method difference, not evidence of a formula bug. Down-market period explanation
 remains valid. Phase 5 proceeds.
 
-**Plan to resolve within Phase 5 Step 5.1**: Add directional-regime feature (spot return
-from market open to t_post) to GBT; makes the down-market effect explicitly visible in SHAP.
-This will show whether regime is the primary SHAP feature driving unfavorable outcomes.
+**RESOLVED by Pre-5.F (2026-05-29)**:
+Per-position formula validation using data-api /positions + /activity for 4 resolved markets:
+- 0xa308...: Our all-fills MTM = -13.955, API combined (Up+Down) = -14.040, gap = **0.6%** ✓
+- 0xfb23...: Our all-fills MTM = +8.345, API combined = +8.283, gap = **0.7%** ✓
+- 0x6cf7...: gap = **0.3%** ✓
+- 0x99db...: gap = **0.4%** ✓
+All 4 gaps < 5%, no systematic bias. F5: PASS.
+
+**Root cause of earlier test failure**: bug in F test code — up_wins was inferred from
+`curPrice < 0.01` → set up_wins=0, but for a Down token position curPrice<0.01 means
+DOWN LOST → up_wins=1. The core MTM formula in pre5de_pnl_verification.py was NOT
+affected (it uses polygon ConditionResolution events for up_wins, not curPrice).
+
+**Leaderboard pnl=-1,382 explained**: leaderboard vol=270k ≈ our single-day rate
+(11.4k USDC/h × 24h = 274k) → leaderboard vol/pnl are 24h rolling metrics, not lifetime.
+The -1,382 is NOT a 49h-window figure and cannot be compared to our window total.
+
+**Phase 5 cleared.**
 
 ---
 

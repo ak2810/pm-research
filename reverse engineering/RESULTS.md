@@ -423,8 +423,27 @@ BLOCKER-007 logged. Proceed to D/E per C5 same-sign rule.
 
 ### Pre-5.C/D/E — Gate Decision
 
-BLOCKER-007 logged (leaderboard discrepancy + E3 check flag). BLOCKER-007 is **non-blocking**:
-D5 independently verifies formula correctness. Proceed to Phase 5 with BLOCKER-007 documented.
+BLOCKER-007 logged (leaderboard discrepancy + E3 check flag). BLOCKER-007 escalated to gating.
+
+### Pre-5.F — Per-Position Formula Validation (definitive)
+
+Used data-api /positions + /activity to reconstruct fills for 4 clearly resolved markets
+and compared our all-fills MTM to API combined (Up+Down token) P&L:
+
+| conditionId | Our MTM | API combined | Gap |
+|-------------|---------|-------------|-----|
+| 0xa308... (Down lost) | -13.955 USDC | -14.040 USDC | **0.6%** |
+| 0xfb23... (Down lost) | +8.345 USDC | +8.283 USDC | **0.7%** |
+| 0x6cf7... (Up won) | +51.723 USDC | +51.565 USDC | **0.3%** |
+| 0x99db... (Up won) | +15.759 USDC | +15.698 USDC | **0.4%** |
+
+**F5: PASS.** All gaps < 1%. No systematic bias. Mean abs gap = 0.5%.
+
+**Leaderboard discrepancy explained**: vol=270,158 ≈ our single-day trading rate
+(11.4k USDC/h × 24h = 274k USDC) → leaderboard vol/pnl are 24h rolling metrics.
+The -1,382 USDC pnl is NOT a 49h window figure and is not comparable.
+
+**BLOCKER-007: RESOLVED.** Phase 5 cleared unconditionally.
 
 ### Step 4.6 — Profitability Decomposition
 

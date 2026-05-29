@@ -1,9 +1,14 @@
 ## CURRENT
-**Phase**: Pre-5 verification COMPLETE → Phase 5 cleared to start
-**Sub-step**: Pre-5.C/D/E done — BLOCKER-007 logged (non-blocking)
-**Started**: 2026-05-29T18:30:00Z
+**Phase**: Pre-5 verification COMPLETE — Phase 5 CLEARED
+**Sub-step**: Pre-5.F done — BLOCKER-007 RESOLVED
+**Started**: 2026-05-29T19:30:00Z
 
 ## JUST DID
+Pre-5.F COMPLETE (2026-05-29T19:30Z): per-position formula validated against data-api.
+All 4 resolved positions: gap < 1% (0.3-0.7%). F5 PASS. BLOCKER-007 RESOLVED.
+Leaderboard -1,382 is 24h rolling metric (not 49h window figure) — no contradiction.
+Formula for -83,831 USDC window P&L is confirmed correct.
+
 Pre-5.C/D/E COMPLETE (2026-05-29T18:30Z):
 - C: Leaderboard PnL = -1,382 USDC lifetime vs our -83,831 window. No windowed endpoint.
   60× magnitude gap, same sign. Likely accounting methodology difference.

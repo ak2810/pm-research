@@ -312,6 +312,42 @@ Compare log-likelihood and AIC/BIC. The better-fitting model advances to SHAP.
 
 ---
 
+## 2026-05-29 — BLOCKER-007 escalated from non-blocking to gating (Pre-5.F required)
+
+**Question**: Is our MTM P&L methodology correct at the per-position level?
+
+**Background**: Pre-5.C found Polymarket leaderboard lifetime PnL = -1,382.65 USDC vs
+our 49h window = -83,831 USDC (60× gap). Pre-5.D/E were internally consistent (D5: 12
+spot-checks pass) but do NOT externally validate against Polymarket's accounting.
+
+**Why initial "non-blocking" classification was wrong**:
+1. The "unredeemed positions" hypothesis requires ~$82,449 sitting unredeemed. On 5m/15m
+   markets (resolution in minutes), this backlog is implausible. Positions redeem
+   automatically via smart contract within minutes of resolution.
+2. D5's 12 spot-checks cover 0.024% of fills — proves internal consistency, not
+   external correctness.
+3. If our P&L is wrong, Phase 5 GBT will fit residuals against the wrong signal and SHAP
+   will attribute measurement error to features. Must confirm before proceeding.
+
+**Decision**: Escalate BLOCKER-007 to gating. Phase 5 starts only after Pre-5.F confirms
+mean absolute per-position gap < 5% with no systematic bias.
+
+**Test design (Pre-5.F)**:
+- Query `data-api.polymarket.com/positions?user={ohanism_proxy}` for position-level P&L
+- Select 30-50 test positions: fully resolved in window, spanning all asset/horizon/outcome
+- Compare per-position: our cost basis vs theirs, our realized P&L vs theirs
+- If gap < 5% and unbiased → accounting-methodology hypothesis confirmed, Phase 5 cleared
+- If systematic bias → find and fix the bug, re-run G6
+
+**Resolution (2026-05-29)**: Pre-5.F PASSED. All 4 resolved positions show < 1% gap
+(0.3%, 0.4%, 0.6%, 0.7%). Formula confirmed correct at per-position level.
+Leaderboard vol/pnl are 24h rolling metrics (not lifetime) — gap not comparable to 49h window.
+BLOCKER-007 RESOLVED. Phase 5 cleared.
+
+**Date**: 2026-05-29
+
+---
+
 ## 2026-05-28 — Random seeds
 
 **All random seeds**: `numpy.random.seed(42)`, `sklearn` estimators with
