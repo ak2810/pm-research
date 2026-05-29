@@ -64,6 +64,7 @@ def scan_feed(
         [str(p) for p in existing],
         low_memory=True,
         hive_partitioning=False,
+        use_statistics=False,
     )
 
     if columns:
@@ -92,7 +93,9 @@ def scan_partition(
     """
     if not partition.exists_locally():
         raise FileNotFoundError(f"Partition not cached locally: {partition.local_path}")
-    lf = pl.scan_parquet(str(partition.local_path), low_memory=True, hive_partitioning=False)
+    lf = pl.scan_parquet(
+        str(partition.local_path), low_memory=True, hive_partitioning=False, use_statistics=False
+    )
     if columns:
         available = list(lf.schema)
         cols = [c for c in columns if c in available]
