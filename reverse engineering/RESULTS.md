@@ -259,6 +259,30 @@ Phase 4 σ-fitting in progress.
 
 **Output**: output/tables/sigma_implied.parquet (2,060 rows)
 
+### Step 4.2 — σ estimators (COMPLETE)
+
+100% non-null coverage for all 16 estimators. BTC 5m medians: rv_5m=0.094, rv_60m=0.097, ewma_97=0.334, garch=0.333. EWMA and GARCH closest to σ_implied (0.327).
+**Output**: output/tables/sigma_estimators.parquet (2,060 rows × 19 cols)
+
+### Step 4.3 — L1 regression cascade (GATE FAILS — BLOCKER-003)
+
+**M1 dominance hierarchy**: ewma_94 (R²=0.245) > ewma_90 (0.241) > ewma_97 (0.232) > garch (0.222) > gk_1h (0.211) > rv_60m (0.173). All β>0, p<0.001.
+
+| Model | R² | adj-R² | Notes |
+|-------|-----|--------|-------|
+| M2 diverse top-3 (ewma_94+rv_60m+gk_1h, VIF=9) | 0.268 | 0.267 | FAIL |
+| M3 +asset FEs | 0.279 | 0.277 | XRP/SOL FEs significant (-0.107/-0.096) |
+| M4 +asset×horizon | 0.280 | 0.277 | No additional horizon effect |
+| M5 +hour-of-day | **0.290** | 0.279 | **GATE FAILS (R²≥0.40 required)** |
+
+Signs stable M1→M5 ✓. **BLOCKER-003 logged.**
+
+**Root cause**: σ_implied from fill prices ≠ ohanism's opening σ. At quote-placement time S_t≈S_0 → digital option ATM for any σ → σ only sets the half-spread. OTM cushion (0.22) is selection bias from taker arrival after drift, not ohanism's spread. σ_implied variance dominated by spot drift noise → R² plateau at 0.29.
+
+**Key takeaway (valid despite gate)**: ewma_94 dominates (β=0.47, R²=0.245). ohanism's σ correlates most strongly with EWMA λ=0.94.
+
+**Path forward per BLOCKER-003**: Use pm_clob level-change based opening quotes (Option A) OR skip L1 and proceed directly to L2 structural policy estimation.
+
 ---
 
 ## Phase 0 — Bootstrap

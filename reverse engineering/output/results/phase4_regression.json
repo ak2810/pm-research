@@ -1,0 +1,79 @@
+{
+  "n": 2060,
+  "hac_lag": 8,
+  "top3_estimators": [
+    "ewma_94",
+    "rv_60m",
+    "gk_1h"
+  ],
+  "m1_ranking": [
+    {
+      "estimator": "ewma_94",
+      "R2": 0.2453,
+      "beta": 0.745
+    },
+    {
+      "estimator": "ewma_90",
+      "R2": 0.2412,
+      "beta": 0.6918
+    },
+    {
+      "estimator": "ewma_97",
+      "R2": 0.2325,
+      "beta": 0.7964
+    },
+    {
+      "estimator": "garch",
+      "R2": 0.2221,
+      "beta": 0.7656
+    },
+    {
+      "estimator": "gk_1h",
+      "R2": 0.2108,
+      "beta": 0.8235
+    },
+    {
+      "estimator": "park_1h",
+      "R2": 0.1925,
+      "beta": 0.7391
+    },
+    {
+      "estimator": "rv_60m",
+      "R2": 0.1735,
+      "beta": 1.0223
+    },
+    {
+      "estimator": "rv_240m",
+      "R2": 0.1714,
+      "beta": 1.0428
+    }
+  ],
+  "models": {
+    "M2": {
+      "R2": 0.2677,
+      "adj_R2": 0.2667,
+      "RMSE": 0.2741,
+      "VIF": {
+        "ewma_94": 9.3,
+        "rv_60m": 8.1,
+        "gk_1h": 7.3
+      }
+    },
+    "M3": {
+      "R2": 0.2793,
+      "adj_R2": 0.2772,
+      "RMSE": 0.272
+    },
+    "M4": {
+      "R2": 0.2803,
+      "adj_R2": 0.2768,
+      "RMSE": 0.2718
+    },
+    "M5": {
+      "R2": 0.2903,
+      "adj_R2": 0.2787,
+      "RMSE": 0.2699
+    }
+  },
+  "gate_model": null
+}
