@@ -1,7 +1,7 @@
 ## CURRENT
-**Phase**: FULL-DATA RE-RUN (Part A + Part B) before Phase 4
-**Sub-step**: Part A + Part B COMPLETE — Phase 4 ready
-**Started**: 2026-05-29T08:42:00Z
+**Phase**: 4 — COMPLETE with documented blockers (BLOCKER-003/004/005, G6 inconclusive)
+**Sub-step**: 4.6 complete — Phase 5 (GBT residual) next
+**Started**: 2026-05-29T18:10:00Z
 
 ## JUST DID
 A1 COMPLETE: Enumerated all S3 partitions. All 4 feeds have exactly 50 partitions
