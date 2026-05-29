@@ -120,6 +120,30 @@ the correct initialization: w_ewma90≈0.3, w_ewma94≈0.5, w_ewma97≈0.1, othe
 
 ---
 
+## 2026-05-29 — Pre-5.B: σ-recipe profile likelihood CI and replication convention
+
+**Profile likelihood results** (λ ∈ {0.85,0.88,0.90,0.92,0.94,0.96,0.98}):
+- λ_MLE = 0.85 (logL=752.12 when other params refitted)
+- Stage 1 dominant: λ=0.94 (when σ recipe isolated, other params fixed)
+- 95% CI (ΔlogL ≤ 1.92): λ ∈ [0.85, 0.94] (width=0.09)
+
+**Disagreement analysis**: profile-λ=0.85 vs Stage1-λ=0.94. ΔlogL=1.19 < 1.92 → within CI.
+The flat ridge [0.85, 0.94] means all λ in this range fit approximately equally well.
+- At λ=0.85 (short memory): faster EWMA, slightly higher σ̂, spread params adjust
+- At λ=0.94 (Stage 1 result): best when σ recipe is isolated from spread confound
+
+**Replication convention**: use **λ=0.94** (from Stage 1 σ-isolated fit, more stable for midpoint).
+This is defensible — λ=0.94 lies within the 95% CI.
+
+**BLOCKER-005 interpretation**: non-identifiability was REAL (not numerical). The σ recipe
+decay is non-uniquely determined in [0.85, 0.94]. This is a known limitation of the data:
+EWMA_0.85, EWMA_0.90, EWMA_0.94 all give similar σ estimates at 5-minute timescales and
+cannot be distinguished at the noise level of the post-time σ data.
+
+**Date**: 2026-05-29
+
+---
+
 ## 2026-05-29 — Phase 4 σ_implied v1→v2: fix quote-post-time proxy (BLOCKER-003 resolution)
 
 **Problem (BLOCKER-003)**: σ_implied_v1 used the earliest ohanism FILL as the

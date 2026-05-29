@@ -1,0 +1,10 @@
+{
+  "n": 46203,
+  "n_missing_outcome": 2055,
+  "total_rebate": 3140.8,
+  "total_mtm_binary": -86971.42,
+  "net_pnl": -83830.62,
+  "net_positive": false,
+  "poly_outcomes_used": 17584,
+  "gamma_outcomes_used": 0
+}

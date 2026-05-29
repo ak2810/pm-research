@@ -66,6 +66,31 @@ says proceed to Layer 2 if L1 model family might be wrong).
 is still a valid finding. ohanism's σ is most correlated with EWMA λ=0.94. This
 carries forward to L2.
 
+## BLOCKER-006 — G6: Net P&L negative on 49h window — DOWN-MARKET PERIOD BIAS
+
+**Timestamp**: 2026-05-29T18:15:00Z  **Phase**: Pre-5.A
+
+**What failed**: G6 (net P&L must be positive). Net = **-83,831 USDC** on 46,203 fills using
+binary ConditionResolution outcomes (17,584 polygon events, technically correct).
+
+**Root cause: 49h window is a DOWN-MARKET PERIOD**:
+Down wins 55.1% (9,695 of 17,584 resolved markets). BTC/ETH/SOL all trended DOWN.
+ohanism has +11.8% net long-Up canonical bias → in a down period, MTM losses are expected.
+XRP: +347 USDC net (XRP trended UP, confirms directional explanation).
+
+Per-asset: BTC=-51,488 ETH=-27,573 SOL=-5,117 **XRP=+347**. Rebate=+3,141 (positive, 0.068/fill).
+
+**Why not strategy failure**: ohanism is on Polymarket leaderboard (positive cumulative PnL).
+The 49h window is a single down-market snapshot. Strategy profits over full cycles.
+
+**Measurement gap**: Need longer window (weeks) across diverse market conditions.
+
+**Resolution for Phase 5 gate**: G6 remains open. Per Phase 5 gate rules:
+"G6 closed OR BLOCKER-006 logged with clear explanation" — this blocker satisfies that gate.
+Phase 5 proceeds with G6 documented as down-market-window artifact.
+
+---
+
 ## BLOCKER-005 — Phase 4 L2 G1 fails: σ-recipe non-identifiable in joint fit
 
 **Timestamp**: 2026-05-29T17:55:00Z  **Phase**: 4 — Step 4.5

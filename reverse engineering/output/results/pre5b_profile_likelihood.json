@@ -1,0 +1,54 @@
+{
+  "profile": [
+    {
+      "lambda": 0.85,
+      "neg_loglik": -752.1157216650716,
+      "loglik": 752.1157216650716,
+      "n_valid": 997
+    },
+    {
+      "lambda": 0.88,
+      "neg_loglik": -751.8492504576465,
+      "loglik": 751.8492504576465,
+      "n_valid": 997
+    },
+    {
+      "lambda": 0.9,
+      "neg_loglik": -751.8590040839252,
+      "loglik": 751.8590040839252,
+      "n_valid": 997
+    },
+    {
+      "lambda": 0.92,
+      "neg_loglik": -751.5394729220652,
+      "loglik": 751.5394729220652,
+      "n_valid": 997
+    },
+    {
+      "lambda": 0.94,
+      "neg_loglik": -750.933069102928,
+      "loglik": 750.933069102928,
+      "n_valid": 997
+    },
+    {
+      "lambda": 0.96,
+      "neg_loglik": -749.8833892181555,
+      "loglik": 749.8833892181555,
+      "n_valid": 997
+    },
+    {
+      "lambda": 0.98,
+      "neg_loglik": -748.3149243244476,
+      "loglik": 748.3149243244476,
+      "n_valid": 997
+    }
+  ],
+  "lambda_mle": 0.85,
+  "ci_95": [
+    0.85,
+    0.94
+  ],
+  "ci_width": 0.08999999999999997,
+  "interpretation": "MODERATE CI [0.85,0.94] \u2014 EWMA decay in [0.85,0.94]. Use \u03bb=0.85 by convention.",
+  "coheres_with_stage1": false
+}

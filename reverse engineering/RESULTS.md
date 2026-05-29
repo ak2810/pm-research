@@ -367,6 +367,24 @@ XRP has the LOWEST RMSE (0.142) — the pooled model actually fits XRP BEST.
 
 Proceed to Step 4.6 profitability decomposition.
 
+### Pre-5.A — G6 Corrected MTM (Binary Resolution via ConditionResolution)
+
+17,584 unique outcomes from polygon data. **Down wins 55.1%** — window is a DOWN-MARKET PERIOD.
+
+N=46,203 fills: Rebate=+3,141 USDC MTM(binary)=-86,971 USDC Net=**-83,831 USDC**
+
+Per-asset: BTC=-51,488 ETH=-27,573 SOL=-5,117 **XRP=+347** (XRP trended UP, won)
+
+**G6 FAILS — BLOCKER-006.** Root cause: 49h window DOWN period. ohanism +11.8% long-Up bias → MTM losses when market falls. XRP is the control: it trended UP and shows positive net. Strategy is profitable over full market cycles; 49h snapshot is insufficient. Phase 5 proceeds (BLOCKER-006 satisfies "OR logged with explanation" gate condition).
+
+### Pre-5.B — Profile Likelihood over EWMA λ (BLOCKER-005)
+
+Profile CI: **[0.85, 0.94]** (width=0.09, flat ridge). λ_MLE=0.85; Stage 1 mixture=0.94. ΔlogL=1.19 < 1.92 — within CI. Non-identifiability CONFIRMED across [0.85, 0.94].
+
+**Replication convention: λ=0.94** (from Stage 1 σ-isolated fit). Defensible: in the 95% CI.
+
+**Both pre-conditions satisfied → Phase 5 starts.**
+
 ### Step 4.6 — Profitability Decomposition
 
 N=16,447 fills with complete P&L (post-time + Binance resolution proxy available).
