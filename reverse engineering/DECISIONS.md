@@ -189,7 +189,16 @@ B4 reclassified as not discriminating.
 3. 0% net-zero final positions (hold-to-resolution)
 4. 52% ATM crossings: ohanism not on both sides (one-sided post, no quote to flip)
 
-**Decision**: PASSIVE CONFIRMED. Phase 4 gate stays at **R² ≥ 0.4 at quote-placement-time**.
+**Decision (REVISED after full B1 run, 9349s runtime)**:
+CONDITIONAL HYBRID — not purely passive. Architecture:
+- Default: passive (post-once at market open, hold 97.4% of the time)
+- Activated on ~2.6% of ATM crossings: event-driven response in 17ms median
+- The 18.4s "flip latency" measured taker arrival wait, NOT ohanism's reaction time.
+
+Phase 4 gate stays at **R² ≥ 0.4 at quote-placement-time**.
+Rationale: 97% of fills come from the passive regime (no repricing). The 3% repriced
+fills add variance to σ_implied. R² ≥ 0.4 is appropriate for this mixed distribution.
+Restoring to 0.6 would be incorrect (would require 97% active-repricing, which is false).
 
 **Date**: 2026-05-29
 

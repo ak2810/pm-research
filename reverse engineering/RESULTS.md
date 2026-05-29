@@ -143,18 +143,23 @@ the full window will be more robust.
 
 ### Part B — Architecture Diagnostics (2026-05-29)
 
-**B1: Pure reaction latency (level-change-based)**
-- 500 markets sampled. B1 requires full pm_clob level_changes scan per market (~50s each),
-  which exceeds the 600s compute budget. Used fill-latency proxy from quote_flip_full.py:
-  **Median 18.4s** [95% CI: 14.2–22.1s] from spot crossing to fill on new side (n=276).
-- Limitation: fill-latency confounds ohanism's reaction time with taker arrival wait.
-- Signal: **18.4s > 5s → SLOW/PASSIVE** (1 passive signal)
+**B1: Pure reaction latency (level-change-based, full run: 9349s, n=40)**
+- 500 markets, 1517 ATM crossings found, **40** with a confirmed new level+fill on the
+  newly-favored side (response rate: 2.6% of crossings).
+- **Reaction latency: median=17ms** [95% CI: 7–64ms]; p25=4ms p75=290ms p90=598ms
+- Note: n=40 < 50 threshold — treat as approximate. But CI is tight at the median.
+- **KEY RECONCILIATION**: fill-latency proxy (18.4s) vs level-latency (17ms).
+  The 1000× difference is the taker arrival wait: ohanism places the quote in 17ms,
+  but a taker takes 18 seconds to arrive. The 18.4s was NOT ohanism's reaction time.
+- Signal: **17ms median < 500ms → EVENT-DRIVEN CAPABILITY** when activated.
+- But: **2.6% response rate** → ohanism only activates this for ~1 in 40 ATM crossings.
+  Most crossings do NOT trigger a level update (passive default behavior).
 
-**B2: Quote-update count per market**
-- Level_changes pipeline captures ALL market participants, not ohanism-specific.
-  Cannot isolate ohanism's updates from other makers' updates without order attribution.
+**B2: Quote-update count per market (full run, n=100 tokens)**
+- Median: **22,819 updates per market** (p25=1,392, p75=47,783, p90=114,126)
+- At 22,819/300s = 76 updates/second for a 5m market — clearly ALL participants.
 - Phase 3 showed 99.85% reprice, 0.15% pull across the full book.
-- Signal: **AMBIGUOUS** (not ohanism-specific)
+- Signal: **AMBIGUOUS** (not ohanism-specific; all-participant measure)
 
 **B3: Quote-price-vs-spot correlation (n=110 markets)**
 - Median correlation: **0.906**, fraction(corr>0.7): **79.1%**
@@ -190,10 +195,29 @@ True event-driven signals: none.
 
 B3 and B4 are reclassified as non-discriminating (methodology limitations).
 
-**VERDICT: PASSIVE CONFIRMED.**
+**REVISED VERDICT: CONDITIONAL HYBRID (mostly passive, selectively event-driven)**
 
-Keep Phase 4 σ-gate at **R² ≥ 0.4 at quote-placement-time**. The "post-once, hold-
-to-resolution" architecture is confirmed at 2+ day, 50,586-fill scale.
+The full B1 run (9349s, 500 markets) revealed the critical reconciliation:
+- Fill-latency 18.4s ≠ reaction latency. Fill-latency = reaction_latency + taker_wait.
+- **Actual reaction latency when activated: 17ms median** (event-driven speed)
+- But activation rate: **2.6% of ATM crossings** (40/1517) get a response
+
+**Architecture**: ohanism has event-driven infrastructure (17ms response capable) but
+operates mostly passively (triggers on only ~1 in 40 ATM crossings). Most of the time,
+the quote set at market open is held until expiry. For significant spot moves (the 2.6%
+of crossings that trigger a response), they reprice within 17ms.
+
+**Phase 4 implications**:
+- σ_implied at fill time has mixed behavior: ~97% of fills reflect the opening fair value
+  (passive), ~3% reflect a repriced fair value (event-driven update triggered by large move).
+- R² ≥ 0.4 gate at quote-placement-time remains appropriate — it accommodates this
+  mixed distribution without requiring perfect correlation.
+- Do NOT change Phase 4 gate. The R² ≥ 0.4 is correct for this hybrid behavior.
+
+**Key insight**: the 18.4s "flip latency" was measuring taker arrival time, not ohanism's
+decision latency. When ohanism decides to update, they do it in ~17ms. This is the
+"fast when activated, mostly passive" pattern — consistent with an event-driven system
+that applies a FILTER on when to activate (likely: spot move magnitude threshold).
 
 ### A3 + Part B — Final conclusions
 
