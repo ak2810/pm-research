@@ -171,6 +171,71 @@ market prices) OR exploiting asymmetric taker demand for Up tokens in a trending
 Plots: output/plots/inventory_lifecycle.png, total_dollar_exposure.png,
 peak_inventory_distribution.png. Full stats: output/results/phase2_stats.json.
 
+### XRP 5m mechanism test (2026-05-29)
+
+**Distribution of Up-price by asset:**
+| Asset | p50(Up-price) | frac(Up>0.5) |
+|-------|--------------|-------------|
+| BTC | 0.490 | 49.1% |
+| ETH | 0.430 | 42.4% |
+| SOL | 0.490 | 49.0% |
+| XRP | **0.600** | **58.3%** |
+
+**XRP explanation**: XRP was in an uptrend on 2026-05-27. Up tokens priced > 0.5 in 62.6% of XRP 5m fills → Down is rebate-favored 62.6% of the time → ohanism primarily SELLS Down → accumulates long-Up → explains most of the 31.7% skew.
+
+**XRP 5m bias by ATM state:**
+- When Up > 0.5 (Down rebate-favored): 79.7% long-Up fills ← strong rebate mechanism
+- When Up < 0.5 (Up rebate-favored): 52.0% long-Up fills ← ~50/50 (switches appropriately)
+
+**Verdict**: XRP 31.7% skew is **primarily mechanical** (62.6% of fills in Up>0.5 region × 79.7% long-Up → ~49.8% pure-mechanical contribution). Residual (~10-15pp) is noise or market microstructure. XRP-specific alpha cannot be fully ruled out but is not supported by the data. Phase 5 rebate-control test will finalize.
+
+**Overall rebate alignment rate**: 36.6% (below 50%) — near-ATM markets dominate, where rebate difference is negligible (<1bp per unit). Rebate optimization is only economically significant at |p - 0.5| > 0.1.
+
+---
+
+### Settlement timing and coverage (2026-05-29)
+
+**Burn event distribution (365 burns, 85 unique txns):**
+- 0% of burns BEFORE our first fill block → no opening-window pre-recording carry
+- Evenly distributed hours 4-23, slight spike at hour=21 (40 burns = batch redemption)
+- **29 tokens burned that were never traded in our window** → confirmed pre-recording inventory from 2026-05-26
+
+**Token coverage:**
+- 20.3% (335/1651) of traded token_ids were redeemed within our 24h window
+- 79.7% (1316/1651) never redeemed in window = losers (no payout) or winners claimed later
+
+**Interpretation**: ohanism redeems winning positions throughout the day as markets resolve. The 21:00 UTC batch (40 burns) suggests periodic redemption sweeps. Pre-recording position confirmed (29 tokens from 2026-05-26).
+
+**0% net-zero confirmed**: No evidence of intra-market position closing. Settlement via PayoutRedemption (burn winning token → USDC) only. 0% net-zero from OrderFilled reconstruction is valid.
+
+---
+
+### Phase 3 — Quote-flip discipline finding (2026-05-29)
+
+**When Binance spot crosses the start strike (min(p,1-p) flip event):**
+- 182 crossings found in 100 sampled markets
+- 80 subsequent fills on new rebate-favored side (flip rate: 44%)
+- 59 crossings with no subsequent fill on new side
+
+**Flip latency (crossing → first fill on new side):**
+| Metric | Value |
+|--------|-------|
+| Median | **11,629ms = 11.6s** |
+| P25 | 4,207ms |
+| P75 | 25,002ms |
+| Min | 25ms |
+| Max | 55,707ms |
+
+**Verdict**: ohanism is NOT event-driven on spot crossings. Median 11.6s >> HFT.
+- The 25ms minimum shows event-driven capability exists
+- Most of the time, ohanism maintains PERSISTENT one-sided quotes set at market open
+- Does not actively flip quote sides on each ATM crossing
+- Fills happen as takers arrive organically at ohanism's resting quotes
+
+**Implication for Phase 4-6**: ohanism's quote placement decision is NOT a real-time function of spot-vs-strike. It is likely set once per market (at subscription) based on the initial spot position, then held until filled/expired. This simplifies the structural ML (Layer 2): quote side is fixed at market open, not continuously updated.
+
+---
+
 ### Market metadata (from Gamma slug API, post-Phase-2 addition)
 - Coverage: **95.3%** (20,438/21,451 fills enriched)
 - Null 4.7% (1,013): from pre-recording markets (before data collection started 2026-05-27 03:00 UTC)
