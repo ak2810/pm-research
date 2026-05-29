@@ -26,7 +26,7 @@ Phase 2 — Maker/Taker Decomposition:
 4. Builder fingerprint analysis.
 Acceptance: ACCEPTANCE.md Phase 2 all boxes checked.
 
-**Phase 2 COMPLETE. All acceptance gates pass.**
+**Phase 2 COMPLETE. All acceptance gates pass. Canonical verification done.**
 
 ## NEXT — Phase 3: Order Lifecycle Reconstruction
 1. Build level_changes table from pm_clob price_change events

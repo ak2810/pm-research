@@ -183,3 +183,89 @@ peak_inventory_distribution.png. Full stats: output/results/phase2_stats.json.
 ETH as the second-largest asset. NO hourly markets in this window. Consistent with
 high-frequency MM on the shortest-lived markets where information advantage decays
 fastest and rebate economics are most favorable.
+
+### Canonical skew verification (gotcha #2 correction, 2026-05-29)
+
+Raw SELL=83.4% stat was a **naming artifact**. After normalizing to "long Up":
+
+**SELL fills by outcome_side:**
+- SELL Up: 6,640 (39.4% of SELL fills) → SHORT Up
+- SELL Down: 10,408 (60.6% of SELL fills) → LONG Up (gotcha #2)
+
+**Canonical (long-Up normalized) skew:**
+| Direction | Fills | Notional tokens | % of gross |
+|-----------|-------|----------------|------------|
+| Increases long-Up | 11,829 | 211,589 | 57.9% |
+| Decreases long-Up | 8,609 | 184,402 | 42.1% |
+| **Net signed notional** | — | **+27,187** | **+6.9%** |
+
+**6.9% net long-Up bias** — modest but non-zero.
+
+**By asset**:
+| Asset | Net long-Up % | Fill count |
+|-------|--------------|-----------|
+| BTC | +5.1% | 13,481 |
+| ETH | +11.7% | 4,326 |
+| SOL | +5.2% | 1,517 |
+| XRP | +20.9% | 1,114 |
+
+**By horizon**: 5m=+7.9%, 15m=+3.2% (5m has stronger bias, 15m near-symmetric)
+
+**XRP 5m at +31.7% on 796 fills** — strongest directional signal by far.
+
+**Interpretation**: The 83.4% SELL-dominant stat was almost entirely an artifact of
+ohanism primarily quoting on the Down-token side. Most "SELL" fills were selling Down
+tokens (which = long-Up exposure). The true canonical bias is only +6.9%.
+
+**Is 6.9% a real directional view or a rebate-mechanics artifact?**
+The Down token trades at (1-p) where median p=0.620. Down price = 0.380.
+min(0.380, 0.620) = 0.380 → **selling Down tokens generates higher rebate per unit**
+(rebate ∝ min(p, 1-p) × size). ohanism quotes Down-heavy because Down tokens at
+prices < 0.5 generate larger absolute rebates. This mechanically produces a long-Up
+bias without requiring a directional view.
+
+**VERDICT**: 6.9% canonical skew is most consistent with rebate-maximizing one-sided
+MM, not a directional view. The underlying mechanics: ohanism prefers to quote
+whichever side maximizes rebate = the lower-priced token = Down when Up > 0.5.
+
+**XRP 5m exception**: 31.7% long-Up bias on 796 fills warrants investigation in
+Phase 4-5. Either ohanism has a specific XRP directional view, or XRP was
+substantially below 0.5 for Up tokens during this window (causing XRP Down < 0.5,
+making XRP Down the higher-rebate token).
+
+**Phase 4.6 structural ML update**: No IRL pull-forward needed. Include rebate
+sensitivity ρ in the base model. Check if the XRP 5m skew disappears when
+controlling for min(p, 1-p). If yes: pure rebate mechanics. If no: real view.
+
+### Settlement analysis (0% net-zero finding verification, 2026-05-29)
+
+**PositionsMerge/PayoutRedemption**: NOT indexed in our polygon data. The polygon
+indexer captures OrderFilled, TransferSingle, Transfer, ConditionResolution but
+NOT the outer CTF settlement event signatures.
+
+**TransferSingle classification for ohanism (2026-05-27, 23,391 events):**
+- Fill-sell transfers (from=OHANISM, op=CTF_V2): 3,556 (matches BUY fills ✓)
+- Fill-buy transfers (to=OHANISM, op=CTF_V2): 17,895 (matches SELL fills ✓)
+- Burn/redeem (from=OHANISM, to=0x000...0, op=OHANISM): **339 events, 81 unique txns**
+- Other: 0
+
+The 339 burn events are PayoutRedemption events captured as ERC-1155 burn
+(TransferSingle to the zero address). Ohanism redeems winning positions.
+
+**Analysis:**
+- 339 burns / 21,451 fills = **1.6%** of fills have a burn event
+- 81 unique redemption transactions × 4.2 burns/tx = batch redemptions
+- 1,168 unique markets traded; ~50% should be winners (binary) → ~584 winnable
+- 339/584 ≈ **58% of winning positions redeemed within our 24h window**
+- The other ~42% of winnings claimed outside the 24h window or on different days
+
+**Absence of PositionsMerge events confirmed**: ohanism does NOT merge YES+NO tokens
+mid-market. All settlement is via hold-to-resolution → PayoutRedemption.
+
+**0% net-zero finding CONFIRMED**: The OrderFilled-only reconstruction correctly
+shows ohanism accumulates positions within each market and holds to expiry.
+Settlements occur via PayoutRedemption (winning tokens → USDC), not mid-market Merge.
+
+**ConditionResolution**: 7,727 resolution events in our polygon data on 2026-05-27.
+Of ohanism's 1,168 traded markets, all resolve within 5 minutes (5m markets) or 15
+minutes (15m markets) within the day. The resolution data is complete.

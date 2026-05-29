@@ -112,6 +112,11 @@ carries residual inventory to settlement. 83.4% SELL side (short-Up dominant).
   skewing, just quoting fair value) and (b) directional bias (systematic short-Up
   quote skew).
 
+**Canonical skew revision (2026-05-29)**: 6.9% long-Up bias explained by rebate
+mechanics (Down tokens at p<0.5 generate higher rebate per unit = min(p,1-p)×0.07×0.2).
+IRL pull-forward NOT triggered. XRP 5m at +31.7% is a separate investigation item in
+Phase 5 (check whether bias vanishes when controlling for min(p,1-p)).
+
 **Decision**: In Layer 2, test BOTH:
 1. Pure fair-value quoter (no inventory term)
 2. A-S with signed inventory aversion (allowing γ < 0 for directional bias)
