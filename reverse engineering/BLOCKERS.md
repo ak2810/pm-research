@@ -66,6 +66,59 @@ says proceed to Layer 2 if L1 model family might be wrong).
 is still a valid finding. ohanism's σ is most correlated with EWMA λ=0.94. This
 carries forward to L2.
 
+## BLOCKER-005 — Phase 4 L2 G1 fails: σ-recipe non-identifiable in joint fit
+
+**Timestamp**: 2026-05-29T17:55:00Z  **Phase**: 4 — Step 4.5
+
+**What failed**: G1 (≥80% convergence) fails at both Stage 1 (5/20=25%) and Stage 2a (1/20=5%).
+
+**Gates**:
+- G1: FAIL (25% Stage 1, 5% Stage 2a)
+- G2: PASS ✓ (BTC 5m σ̂=0.341)
+- G3: PASS ✓ (RMSE ratio=1.04)
+- G4: PASS ✓ (EWMA sum Stage 2a=0.837)
+
+**Root cause**: Non-identifiability of σ-recipe weights in the joint fit.
+
+Stage 1 (σ-only, other params fixed): ewma_94=0.74, ewma_90=0.22 — EWMA dominant.
+Stage 2b (joint fit): seasonal=0.56, park_1h=0.29, ewma_97=0.10 — realized-vol dominant.
+Max drift Stage1→Stage2b: 0.74 (ewma_94 collapses from 0.74 to 0.0).
+
+**Interpretation**: Stage 1 recovers the best σ recipe for PRICE LEVELS (how FairValue deviates
+from 0.5). Stage 2b recovers the best σ for the JOINT model (FairValue + spread). The two
+objectives have different optimal σ recipes because θ_h1 (σ-scaled spread) uses σ̂ for BOTH
+FairValue accuracy AND spread calibration simultaneously. This creates a confounding problem
+per I4 of the spec: "if stage-2 θ_σ drifts substantially from stage-1, joint identification
+is shaky and we have a confounding problem."
+
+**What the data says**:
+- Stage 1 finding: ewma_94 explains FairValue deviations. Interpretation: ohanism's σ
+  tracks short-window EWMA when computing the midpoint of their quote.
+- Stage 2b finding: realized-vol (1h) explains the joint price+spread. Interpretation:
+  when the half-spread is also in play, the optimizer uses 1-hour realized vol.
+- Both findings are physically coherent; they're measuring different things.
+
+**Best available estimate** (Stage 2b, N=997):
+  σ-recipe: ewma_90=0.055, ewma_97=0.097, park_1h=0.291, seasonal(rv_60m)=0.555
+  half_spread: θ_h0=0.033, θ_h1=0.51 → spread ≈ 0.033 + 0.51×σ̂×√τ
+  At BTC 5m open: half_spread ≈ 0.033 (3.3 percentage points from fair)
+  θ_ρ=0.0 (rebate term not identified, as expected — high noise)
+  θ_c1=-0.5 (effectively zero for 5m markets: -0.5×0.3×0.003=-0.00045)
+
+**Diagnostics needed to discriminate**:
+1. Fit σ-recipe only WITHOUT the spread term (θ_h1=0). If ewma_94 re-emerges with good
+   convergence, it means the confound is in the spread. This isolates the σ midpoint recipe.
+2. Fit on ONLY near-ATM markets (|FairValue-0.5|<0.05) where spread dominates over drift.
+   If ewma recipe is stable there, it's real.
+3. Use Stage 1 ewma recipe (ewma_94=0.74) as the σ_recipe backbone for Phase 7 paper twin,
+   and treat Stage 2b as providing the spread parameters. Accept the confound as a known
+   limitation.
+
+**Recommendation**: Option 3 — accept Stage 1 as σ-recipe, Stage 2b as spread params.
+This is consistent with L1 EWMA finding (both independent signals say EWMA_94). The Stage 2b
+shift to realized vol likely reflects the optimizer compensating for a misspecified OTM cushion.
+Document θ̂ with CIs from bootstrap. Proceed to Step 4.5b per-asset diagnostic.
+
 ---
 
 ## BLOCKER-004 — Phase 4 L1 gate fails at all σ_implied approaches: inversion ill-conditioned

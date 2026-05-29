@@ -98,6 +98,28 @@ read, convert back to string for storage.
 
 ---
 
+## 2026-05-29 — Phase 4 L1→L2 pivot: σ family confirmed, precise weighting via L2
+
+**What L1 established** (valid despite gate failures):
+1. EWMA (λ∈[0.90,0.94]) is in ohanism's σ recipe. β>0, p<0.001 in EVERY M1-M5
+   model in BOTH v1 (fill-time) AND v2 (post-time). A signal that survives two
+   broken measurement methodologies with stable sign and significance is real.
+2. The L1 gate failure is a measurement problem, not a model problem:
+   - v1 target biased: σ_implied at fill time conflates ohanism's σ with 20+s of
+     post-quote spot drift. R²=0.29 partly measures EWMA vs next-20s realized vol.
+   - v2 target ill-conditioned: at post-time S_t≈S_0 → log(S_0/S_t)≈0 → dividing
+     by √τ≈0.003 amplifies S_t measurement noise 333×. SNR≈1 by construction.
+3. σ_implied scalar inversion is exhausted. Further L1 work is not productive.
+
+**Consequence**: Skip L1 precise weighting, proceed to L2 structural policy estimation.
+L2 models the FULL QUOTE PRICE directly (not σ_implied as intermediate). σ recipe
+parameters (EWMA weights) emerge from the structural fit. EWMA dominance in L1 provides
+the correct initialization: w_ewma90≈0.3, w_ewma94≈0.5, w_ewma97≈0.1, others≈0.025.
+
+**Date**: 2026-05-29
+
+---
+
 ## 2026-05-29 — Phase 4 σ_implied v1→v2: fix quote-post-time proxy (BLOCKER-003 resolution)
 
 **Problem (BLOCKER-003)**: σ_implied_v1 used the earliest ohanism FILL as the

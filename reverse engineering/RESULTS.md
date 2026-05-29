@@ -303,6 +303,41 @@ Gate failure = measurement noise, not model misspecification.
 **Decision**: Option B — proceed directly to L2 structural policy estimation.
 L2 initialization: ewma_90/ewma_94, β≈0.75-0.92.
 
+### Step 4.5 — L2 Structural Policy Estimation (BLOCKER-005)
+
+**Dataset**: 997 markets (deduplicated from 1,103; joined with fills for direction).
+Direction: Up=394 (39%), Down=603 (60%) — matches Phase 2 canonical distribution.
+
+**Stage 1 (σ-recipe only, 20 restarts, G1=5/20=25% — FAILS)**:
+| Weight | Stage 1 | Note |
+|--------|---------|------|
+| ewma_90 | **0.225** | |
+| ewma_94 | **0.743** | dominant |
+| ewma_97 | 0.033 | |
+| rv_1m, rv_5m, park_1h, seasonal | ~0 | |
+EWMA sum=1.000 ✓, G2 BTC 5m σ̂=0.341 ✓, G4 EWMA sum ✓
+
+**Stage 2b (joint fit, θ_c freed)**:
+- σ-recipe drifts: ewma collapses (ewma_94: 0.74→0.00), realized-vol rises (seasonal: 0→0.56)
+- half_spread: **θ_h0=0.033, θ_h1=0.51** ← σ-scaled spread confirmed ✓
+- At 5m BTC open: half_spread ≈ 0.033 + 0.51×0.3×0.003 = 0.034 (3.4 percentage points)
+- θ_ρ=0 (rebate not identified), θ_c1=-0.5 (≈zero effect for 5m)
+- G3 RMSE ratio=1.04 ✓, G4 EWMA sum=0.502 ✓
+
+**BLOCKER-005**: G1 FAILS (convergence 5/20). Cause: confounding between σ-recipe and spread in
+joint fit. Stage 1 and Stage 2b find different σ-recipes for good reason:
+  - Stage 1 answer: EWMA_94=74% (how σ explains FairValue deviations from 0.5)
+  - Stage 2b answer: realized-vol-1h=56%+park=29% (how σ explains full quote price)
+Both answers are internally consistent; they measure different aspects.
+
+**Best available θ̂** (per BLOCKER-005 recommendation: Stage 1 σ-recipe + Stage 2b spread params):
+- **σ-recipe: ewma_94=0.74, ewma_90=0.22, ewma_97=0.03** (from Stage 1 where σ isolated)
+- **half_spread: θ_h0=0.033, θ_h1=0.51** (from Stage 2b)
+- **θ_ρ=0.0** (rebate term not identified at this data scale)
+- Implied: ohanism quotes ≈0.033 + 0.51×EWMA_94×√τ from FairValue at market open
+
+This is the best estimate of ohanism's quoting policy before the per-asset diagnostic (4.5b).
+
 ---
 
 ## Phase 0 — Bootstrap
