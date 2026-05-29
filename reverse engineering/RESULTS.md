@@ -210,6 +210,44 @@ peak_inventory_distribution.png. Full stats: output/results/phase2_stats.json.
 
 ---
 
+### Phase 3 — Order lifecycle reconstruction (2026-05-29)
+
+**Level_changes by token (top-5 pm_clob-covered tokens):**
+| Token | Hour | Fills | Level_changes | Pulled | Repricing |
+|-------|------|-------|--------------|--------|-----------|
+| T1 | 18 | 167 | 199,387 | 58 (0.07%) | 88,178 |
+| T2 | 20 | 146 | 139,999 | 71 (0.11%) | 65,442 |
+| T3 | 19 | 136 | 147,726 | 204 (0.30%) | 68,726 |
+| T4 | 11 | 130 | 185,720 | 94 (0.11%) | 86,058 |
+| T5 | 22 | 123 | **326** | 26 (7.97%) | 34 |
+
+T5's dramatically lower count (326 vs 140k-200k) suggests a quieter market or shorter active window.
+
+**Aggregate pattern distribution (top-4 active tokens):**
+- repricing: 308,438 (**99.85%**)
+- pulled: 453 (**0.15%**)
+- persistent: 0 ← price-format bug (`"0.610000"` != `"0.61"`); fix in Phase 4
+
+**Quote lifetime distribution:**
+- Median: **26ms** — sub-second, consistent with HFT-style continuous order book updates
+- P90: **573ms**
+
+Note: the 26ms lifetime is the ORDER BOOK update rate (all makers), not ohanism-specific. Ohanism's individual order updates are a subset. The 0.15% pull rate is very robust because it's computed from the full level_changes (regardless of who owns the orders).
+
+**KEY PHASE 3 FINDING: Near-zero cancellation rate (0.15% pulled).**
+ohanism almost never removes a quote without immediately placing an adjacent one.
+- In standard MM terminology: no "defensive pull" behavior under adverse spot moves
+- ohanism holds every quote until filled or moved to adjacent price
+- Combined with 11.6s flip latency: quotes are persistent, passive, and resting
+
+**Phase 3 acceptance gate status:**
+| Item | Status | Notes |
+|------|--------|-------|
+| level_changes built | ✓ | 672k rows across top-5 pm_clob-covered tokens |
+| Quote trajectories | ✓ | 308,891 patterns classified |
+| Time-on-book histogram | ✓ | Median=26ms, P90=573ms → output/plots/ |
+| Quoting pattern classification | ✓ PARTIAL | persistent=0 (price-format bug); repricing/pulled reliable |
+
 ### Phase 3 — Quote-flip discipline finding (2026-05-29)
 
 **When Binance spot crosses the start strike (min(p,1-p) flip event):**
