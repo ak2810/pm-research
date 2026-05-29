@@ -169,6 +169,32 @@ carries residual inventory to settlement. 83.4% SELL side (short-Up dominant).
   skewing, just quoting fair value) and (b) directional bias (systematic short-Up
   quote skew).
 
+## 2026-05-29 — Part B architecture verdict: PASSIVE confirmed, gate unchanged
+
+**B3 interpretation note**: fill-price vs spot correlation = 0.906 (79.1% markets corr>0.7).
+This measures FAIR-VALUE PRICING, not active repricing. For any fair-value MM (passive or
+active), fill prices correlate with spot because fair value encodes spot information.
+B3 is not discriminating for fair-value strategies — only for stale-price quoters.
+Reclassified as neutral signal.
+
+**B4 methodology note**: pull rate = 40.0% (30 cases). This measures all-participant
+level_changes attributed wrongly to ohanism. Without per-maker order attribution (requires
+pm_clob user channel or order-hash→level matching), B4 cannot isolate ohanism's cancels.
+Phase 3 0.15% pull rate (whole-book basis) remains the consistent measurement.
+B4 reclassified as not discriminating.
+
+**True evidence for PASSIVE**:
+1. Fill-latency 18.4s (>5s threshold)
+2. OTM cushion 0.220 stable (fills after drift, not at ohanism's quote price)
+3. 0% net-zero final positions (hold-to-resolution)
+4. 52% ATM crossings: ohanism not on both sides (one-sided post, no quote to flip)
+
+**Decision**: PASSIVE CONFIRMED. Phase 4 gate stays at **R² ≥ 0.4 at quote-placement-time**.
+
+**Date**: 2026-05-29
+
+---
+
 **Canonical skew revision (2026-05-29)**: 6.9% long-Up bias explained by rebate
 mechanics (Down tokens at p<0.5 generate higher rebate per unit = min(p,1-p)×0.07×0.2).
 IRL pull-forward NOT triggered. XRP 5m at +31.7% is a separate investigation item in

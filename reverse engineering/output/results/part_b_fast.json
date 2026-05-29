@@ -1,0 +1,26 @@
+{
+  "b1": {
+    "verdict": "SLOW/PASSIVE proxy: fill-latency median 18.4s > 5s",
+    "fill_latency_ms": 18358,
+    "source": "quote_flip_full.py"
+  },
+  "b2": {
+    "verdict": "AMBIGUOUS (level_changes includes all participants, not ohanism-only)",
+    "note": "level_changes not ohanism-specific"
+  },
+  "b3": {
+    "verdict": "EVENT-DRIVEN: frac(corr>0.7)=79.1%",
+    "n": 110,
+    "frac_high": 0.791,
+    "frac_low": 0.045
+  },
+  "b4": {
+    "verdict": "Pull rate 40.0% (n=30)",
+    "cases": 30,
+    "pull_pct": 40.0
+  },
+  "passive_signals": 1,
+  "event_signals": 2,
+  "decision": "HYBRID/AMBIGUOUS: passive=1 event=2. Log to BLOCKERS.md.",
+  "gate_change": null
+}
