@@ -39,12 +39,12 @@
     "maker_pct": 100.0,
     "direct_sub_pct": 100.0,
     "sell_pct_raw": 84.13,
-    "canonical_long_up_net_pct": 12.1,
-    "xrp_5m_long_up_pct": 66.5,
-    "btc_pct": 43.9,
-    "eth_pct": 15.5,
-    "h5m_pct": 58.7,
-    "h15m_pct": 8.9,
+    "canonical_long_up_net_pct": 11.8,
+    "xrp_5m_long_up_pct": 64.7,
+    "btc_pct": 61.2,
+    "eth_pct": 22.0,
+    "h5m_pct": 75.3,
+    "h15m_pct": 20.1,
     "peak_exposure_usdc": 391270.0,
     "mean_exposure_usdc": 192147.0,
     "net_zero_pct": 0.0,
@@ -53,12 +53,12 @@
     "pull_rate_pct": 0.15,
     "lifetime_median_ms": 26.0,
     "lifetime_p90_ms": 573.0,
-    "rebate_mean_usdc": 0.0695,
-    "rebate_total_usdc": 2377.53,
-    "otm_cushion_median": 0.22,
-    "otm_cushion_gt01_pct": 78.0,
-    "selection_5m_pct": 64.8,
-    "selection_15m_pct": 61.0,
+    "rebate_mean_usdc": 0.0683,
+    "rebate_total_usdc": 3296.31,
+    "otm_cushion_median": 0.23,
+    "otm_cushion_gt01_pct": 79.6,
+    "selection_5m_pct": 65.2,
+    "selection_15m_pct": 62.9,
     "settlement_burn_count": 805,
     "settlement_burn_pct_of_traded": 20.5
   },
@@ -88,33 +88,33 @@
     },
     "canonical_long_up_net_pct": {
       "old": 6.9,
-      "new": 12.1,
-      "delta_pct": 75.4
+      "new": 11.8,
+      "delta_pct": 71.0
     },
     "xrp_5m_long_up_pct": {
       "old": 31.7,
-      "new": 66.5,
-      "delta_pct": 109.8
+      "new": 64.7,
+      "delta_pct": 104.1
     },
     "btc_pct": {
       "old": 62.8,
-      "new": 43.9,
-      "delta_pct": -30.1
+      "new": 61.2,
+      "delta_pct": -2.5
     },
     "eth_pct": {
       "old": 20.2,
-      "new": 15.5,
-      "delta_pct": -23.3
+      "new": 22.0,
+      "delta_pct": 8.9
     },
     "h5m_pct": {
       "old": 74.8,
-      "new": 58.7,
-      "delta_pct": -21.5
+      "new": 75.3,
+      "delta_pct": 0.7
     },
     "h15m_pct": {
       "old": 20.5,
-      "new": 8.9,
-      "delta_pct": -56.6
+      "new": 20.1,
+      "delta_pct": -2.0
     },
     "peak_exposure_usdc": {
       "old": 167059,
@@ -155,33 +155,33 @@
     },
     "rebate_mean_usdc": {
       "old": 0.07,
-      "new": 0.0695,
-      "delta_pct": -0.7
+      "new": 0.0683,
+      "delta_pct": -2.4
     },
     "rebate_total_usdc": {
       "old": 1430.0,
-      "new": 2377.53,
-      "delta_pct": 66.3
+      "new": 3296.31,
+      "delta_pct": 130.5
     },
     "otm_cushion_median": {
       "old": 0.22,
-      "new": 0.22,
-      "delta_pct": 0.0
+      "new": 0.23,
+      "delta_pct": 4.5
     },
     "otm_cushion_gt01_pct": {
       "old": 78.3,
-      "new": 78.0,
-      "delta_pct": -0.4
+      "new": 79.6,
+      "delta_pct": 1.7
     },
     "selection_5m_pct": {
       "old": 61.9,
-      "new": 64.8,
-      "delta_pct": 4.7
+      "new": 65.2,
+      "delta_pct": 5.3
     },
     "selection_15m_pct": {
       "old": 60.2,
-      "new": 61.0,
-      "delta_pct": 1.3
+      "new": 62.9,
+      "delta_pct": 4.5
     },
     "settlement_burn_count": {
       "old": 365,

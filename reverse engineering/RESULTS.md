@@ -61,10 +61,10 @@ pm_clob coverage by asset+horizon (among metadata-covered fills):
 | sell_pct_raw | 83.4% | **84.1%** | +0.9% | ✓ stable |
 | canonical_long_up_net_pct | 6.9% | **12.1%** | +75% | ⚠ see note 1 |
 | xrp_5m_long_up_pct | 31.7% | **66.5%** | +110% | ⚠ see note 2 |
-| btc_pct | 62.8% | 43.9%* | -30% | ⚠ metadata artifact* |
-| eth_pct | 20.2% | 15.5%* | -23% | ⚠ metadata artifact* |
-| h5m_pct | 74.8% | 58.7%* | -22% | ⚠ metadata artifact* |
-| h15m_pct | 20.5% | 8.9%* | -57% | ⚠ metadata artifact* |
+| btc_pct | 62.8% | **61.2%** | -2.5% | ✓ stable (was 43.9% artifact) |
+| eth_pct | 20.2% | **22.0%** | +8.9% | ✓ stable (was 15.5% artifact) |
+| h5m_pct | 74.8% | **75.3%** | +0.7% | ✓ stable (was 58.7% artifact) |
+| h15m_pct | 20.5% | **20.1%** | -2.0% | ✓ stable (was 8.9% artifact) |
 | peak_exposure_usdc | $167k | **$391k** | +134% | scale |
 | mean_exposure_usdc | $85k | **$192k** | +126% | scale |
 | net_zero_pct | 0.0% | **0.0%** | 0% | ✓ confirmed |
@@ -81,14 +81,34 @@ pm_clob coverage by asset+horizon (among metadata-covered fills):
 | selection_15m_pct | 60.2% | **61.0%** | +1.3% | ✓ stable |
 | settlement_burn_pct | 20.3% | **20.5%** | +1.0% | ✓ stable |
 
-*btc_pct/eth_pct/h5m_pct/h15m_pct are biased by 32.4% null metadata. Among
-metadata-covered fills: BTC=65.0%, ETH=22.9%, SOL=7.1%, XRP=5.0%; 5m=86.8%, 15m=13.2%.
-The PARTIAL coverage is the artifact — actual distribution is closer to prior values.
+**Final values with 95.4% metadata coverage (4215 Gamma entries, full window warm):**
+BTC=61.2%, ETH=22.0%, SOL=7.3%, XRP=4.9%; 5m=75.3%, 15m=20.1%. Essentially identical
+to the prior single-day estimates. Prior conclusions fully confirmed.
+
+### A3 — Final values (95.4% metadata coverage, full Gamma cache)
+
+| Metric | Old (20h, 1-day) | **New (49h, 2+ days)** | Change |
+|--------|-----------------|----------------------|--------|
+| Fills total | 21,451 | **50,586** | +135% |
+| BTC % | 62.8% | **61.2%** | -2.5% ✓ |
+| ETH % | 20.2% | **22.0%** | +8.9% ✓ |
+| SOL % | 7.1% | **7.3%** | +2.8% ✓ |
+| XRP % | 5.2% | **4.9%** | -5.8% ✓ |
+| 5m % | 74.8% | **75.3%** | +0.7% ✓ |
+| 15m % | 20.5% | **20.1%** | -2.0% ✓ |
+| pm_clob BTC 5m cov | n/a | **85.3%** | — |
+| pm_clob BTC 15m cov | n/a | **91.0%** | — |
+| canonical long-Up | 6.9% | **11.8%** | +71% ⚠ |
+| XRP 5m long-Up | 31.7% | **64.7%** | +104% ⚠ |
+| OTM cushion | 0.220 | **0.230** | +4.5% ✓ |
+| selection 5m | 61.9% | **65.2%** | +5.3% ✓ |
+| peak exposure | $167k | **$391k** | scale |
+| total rebate | $1,430 | **$3,296** | scale |
 
 ### A3 — Changed findings requiring interpretation
 
-**Note 1 — Canonical long-Up skew 6.9% → 12.1%:**
-Over 49h, the normalized directional bias is 12.1% (vs 6.9% over 20h). This is now
+**Note 1 — Canonical long-Up skew 6.9% → 11.8%:**
+Over 49h (95.4% coverage), the normalized directional bias is 11.8% (vs 6.9% over 20h). This is now
 clearly above the 5% "mechanical only" threshold. However, the XRP 5m outlier is the
 primary driver. Among non-XRP assets, the skew is much smaller. See Note 2.
 
