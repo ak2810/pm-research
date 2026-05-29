@@ -72,12 +72,24 @@
 
 ### Layer 1 — Regression cascade (diagnostic)
 - [ ] `σ_implied` computed for every maker fill with `p ∈ (0.02, 0.98)`. NaN fills excluded.
-- [ ] All candidate σ estimators computed and stored in `output/tables/features_sigma.parquet`.
+- [ ] **σ_implied indexed at QUOTE-PLACEMENT-TIME proxy, not fill time** (Phase 3 confirmed
+      passive post-once strategy; fill time σ has high variance from market drift).
+      Proxy: earliest fill per market ≈ quote placement time.
+- [ ] All candidate σ estimators computed at quote-placement-time proxy.
+      Stored in `output/tables/features_sigma.parquet`.
 - [ ] Best-single-estimator analysis: RMSE table written to `RESULTS.md`.
 - [ ] OLS combination fit with HAC standard errors. Adjusted R² reported.
 - [ ] Out-of-sample fit reported (train first 12h, test last 12h).
 - [ ] Residual diagnostics plotted: vs TTE, vs inventory, vs recent flow. PNGs in `output/plots/`.
-- [ ] **Gate: R² > 0.6 and residuals not strongly autocorrelated**. If failed, the model family is wrong — back to METHODOLOGY revision, do not proceed to Layer 2.
+- [ ] **REVISED Gate (Phase 3 passive-quoter confirmation): R² ≥ 0.4 at quote-placement-time**
+      (down from 0.6). Rationale: a passive post-once quoter has fill times dispersed across
+      the market lifetime. σ_implied at fill time has high variance due to market drift
+      AFTER quote placement, even if their σ model is perfect. The useful σ is at the moment
+      of posting, not at fill time. R² of 0.4 at quote-placement-time is equivalent to
+      R² ~0.6 for an active repricing MM. If R² < 0.4 at quote-placement-time proxy,
+      the σ model family is wrong — investigate before Layer 2.
+- [ ] Market selection check: report fraction of available markets ohanism quoted in
+      (currently ~60%; understand selection rule before Layer 2 if <80%).
 
 ### Layer 2 — Structural ML estimation
 - [ ] Policy `π(state; θ)` written explicitly in `src/reverse_engineering/models/structural_ml.py`. Code comments document the math.

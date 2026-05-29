@@ -248,6 +248,49 @@ ohanism almost never removes a quote without immediately placing an adjacent one
 | Time-on-book histogram | ✓ | Median=26ms, P90=573ms → output/plots/ |
 | Quoting pattern classification | ✓ PARTIAL | persistent=0 (price-format bug); repricing/pulled reliable |
 
+### Pre-Phase-4 economic offsets (2026-05-29)
+
+**Sample**: 20,438 fills with full metadata (start_strike, outcome_side, horizon, asset).
+
+**1. Rebate earned:**
+- Mean: **0.070 USDC/fill**, Median: 0.032 USDC/fill
+- Total rebate in window: **1,430 USDC**
+- Mean rebate / notional: **0.873%**
+- Note: rebate = 0.2 × 0.07 × min(p, 1-p) × size. At median OTM cushion of 0.22:
+  min(p,1-p) ≈ 0.28 → rebate ≈ 0.014 × 0.28 × size → small per fill.
+
+**2. OTM cushion (|fill_price - 0.5|) — CRITICAL for Phase 4:**
+- Mean: 0.2270, Median: **0.2200**
+- P10: 0.05, P90: 0.41
+- 78.3% of fills have cushion > 0.1 (far from ATM)
+- 55.3% of fills have cushion > 0.2 (very far from ATM)
+- Only 3.1% are near-ATM (cushion < 0.02)
+
+**KEY INSIGHT**: Fills happen predominantly when the market has DRIFTED far from ATM.
+This is consistent with the Phase 3 post-once strategy: ohanism posts near ATM at
+market open; by the time a taker arrives (~3 min in), the spot has moved and the
+market is OTM/ITM. The fill price captures the DRIFTED market state, not ohanism's
+original quote-placement fair value. This is why σ must be indexed at quote-placement-time
+not fill-time (see DECISIONS.md Phase 4 gate revision).
+
+**3. Adverse selection (note: approximate — proper AS requires resolution data):**
+- Mean AS (as ATM-displacement measure): 0.063, std: 0.254
+- 62.9% of fills have positive adverse selection (taker side was correct on direction)
+- NOTE: this uses fill-time market position as AS proxy. True adverse selection
+  requires comparing to ConditionResolution outcome. The -1.65 USDC/fill "net edge"
+  is NOT the true net PnL — it uses the wrong AS formula. True edge = rebate + settlement
+  payout (which requires resolution data, deferred to Phase 5).
+
+**4. Market selection: ~60% ACTIVE SELECTION:**
+- 5m markets in Gamma window: 1,420 | ohanism traded: 879 (**61.9%**)
+- 15m markets in Gamma window: 480 | ohanism traded: 289 (**60.2%**)
+- SELECTION ACTIVE: ohanism consistently skips ~40% of available markets
+- Selection rule UNKNOWN (see DECISIONS.md). Consistent across 5m and 15m → deliberate.
+- Phase 4 σ-fitting proceeds on selected-market fills only.
+  Phase 5 residuals will test whether selection correlates with known market features.
+
+---
+
 ### Phase 3 — Quote-flip discipline finding (2026-05-29)
 
 **When Binance spot crosses the start strike (min(p,1-p) flip event):**
@@ -255,22 +298,26 @@ ohanism almost never removes a quote without immediately placing an adjacent one
 - 80 subsequent fills on new rebate-favored side (flip rate: 44%)
 - 59 crossings with no subsequent fill on new side
 
-**Flip latency (crossing → first fill on new side):**
+**Flip latency — extended sample (300 markets, n=276 flips, bootstrap CI):**
 | Metric | Value |
 |--------|-------|
-| Median | **11,629ms = 11.6s** |
-| P25 | 4,207ms |
-| P75 | 25,002ms |
-| Min | 25ms |
-| Max | 55,707ms |
+| Median | **18,358ms = 18.4s** [95% CI: 14.2s – 22.1s] |
+| P25 | 7,879ms |
+| P75 | 42,795ms |
+| P90 | 84,773ms |
+| Min | 47ms |
+| Max | 119,706ms |
 
-**Verdict**: ohanism is NOT event-driven on spot crossings. Median 11.6s >> HFT.
-- The 25ms minimum shows event-driven capability exists
-- Most of the time, ohanism maintains PERSISTENT one-sided quotes set at market open
-- Does not actively flip quote sides on each ATM crossing
-- Fills happen as takers arrive organically at ohanism's resting quotes
+n=276 ≥ 50 — sample adequate. Median reliable. Earlier 100-market estimate (11.6s, n=80) was low; 300-market result (18.4s) more representative.
 
-**Implication for Phase 4-6**: ohanism's quote placement decision is NOT a real-time function of spot-vs-strike. It is likely set once per market (at subscription) based on the initial spot position, then held until filled/expired. This simplifies the structural ML (Layer 2): quote side is fixed at market open, not continuously updated.
+Crossings breakdown (300 markets): 600 total; 293 (48.8%) with ohanism on both sides; 276 (46%) flips measured; 237 (39.5%) no new-side fill.
+
+**52% of crossings: ohanism not present on both sides** — directly confirms one-sided posting. When ohanism posts Down, there is no Up quote to flip from.
+
+**Verdict**: NOT event-driven. Median 18.4s >> HFT. Passive one-sided resting quotes.
+
+**Implication for Phase 4-6**: Quote side fixed at market open (subscription time).
+Layer 2 quote-side is a static parameter per market, not a continuous control input.
 
 ---
 

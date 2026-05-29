@@ -15,12 +15,28 @@ Peak RAM: <1 GB.
 from __future__ import annotations
 
 import json
+from decimal import Decimal
 from typing import Any
 
 import polars as pl
 import structlog
 
 from reverse_engineering.io.local_reader import scan_feed
+
+_SIX_DP = Decimal("0.000001")
+
+
+def _normalize_price(raw: str) -> str:
+    """Normalize a price string to exactly 6 decimal places.
+
+    Both pm_clob price_change prices ("0.61") and ohanism fill prices
+    ("0.610000") must use this format to allow string-equality matching.
+    """
+    try:
+        return str(Decimal(raw).quantize(_SIX_DP))
+    except Exception:
+        return raw
+
 
 log = structlog.get_logger(__name__)
 
@@ -58,7 +74,7 @@ def _explode_price_changes(
                 {
                     "t_recv_ns": t_ns,
                     "token_id": tid,
-                    "price": e.get("price", ""),
+                    "price": _normalize_price(e.get("price", "0")),
                     "side": e.get("side", ""),
                     "size": e.get("size", "0"),
                     "hash": e.get("hash", ""),

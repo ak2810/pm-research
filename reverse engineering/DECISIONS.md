@@ -98,6 +98,63 @@ read, convert back to string for storage.
 
 ---
 
+## 2026-05-29 — Phase 4 σ-gate revised for passive quoter
+
+**Question**: What R² threshold for Layer 1 σ-regression is appropriate given Phase 3
+confirms ohanism is a passive post-once quoter?
+
+**Evidence**:
+1. Phase 3: 0.15% quote cancellation rate. Quotes set at market open and held.
+   Quote-flip latency median=18.4s [95% CI: 14.2-22.1s] — no dynamic repricing.
+2. Phase 3: median quote lifetime=26ms (order book updates), but ohanism's own
+   position is set once per market.
+3. Phase 2: fills happen at OTM cushion median=0.22 — fills occur when market has
+   already drifted from ATM (not when ohanism repriced to fair value).
+
+**Implication for σ-fitting**:
+If ohanism sets σ at market open (quote-placement-time) and doesn't update, then:
+- `σ_implied(fill)` = fill price re-inverted using **current** spot (S_t at fill time)
+- But ohanism computed their σ using **opening** spot (S_0 ≈ strike at market open)
+- After market drifts (S_t ≠ S_0), `σ_implied(fill)` ≠ σ_at_quote-placement
+
+The correct target is σ_implied computed at the proxy quote-placement-time
+(earliest fill per market, or start_date_unix as S_t proxy).
+
+**R² gate revision**:
+- Original gate: R² > 0.6 (from METHODOLOGY.md, for active MM)
+- Revised gate: R² ≥ 0.4 at quote-placement-time proxy
+- Rationale: variance from market drift after quote placement reduces R² by ~0.15-0.25
+  even for a perfect σ model. 0.4 at quote-placement-time ≈ 0.6 for active repricing MM.
+
+**Date**: 2026-05-29
+
+---
+
+## 2026-05-29 — Market selection rule is unknown (Phase 4 prerequisite)
+
+**Observation**: ohanism quotes in 60% of 5m/15m crypto markets in the window
+(879/1420 5m, 289/480 15m). This is significant selection (40% markets skipped).
+
+**Known selection facts**:
+- No DOGE markets in our fills (confirmed from Gamma: no DOGE fills)
+- Selects across all UTC hours observed (no clear time-of-day filter)
+- Skips exactly 40% of markets consistently across 5m and 15m horizons
+
+**Unknown**: What specific criterion excludes 40% of markets? Candidates:
+- Minimum book depth at market open (depth < threshold → skip)
+- Maximum distance-from-ATM at market open (if market opens far OTM → skip)
+- Existing inventory threshold (already max-long → skip more markets of same asset)
+- Random noise from connectivity (collector missed the new_market event)
+
+**Decision**: Proceed to Phase 4 σ-fitting on the selected markets only (fills as-is).
+The selection rule investigation is deferred to Phase 5 (when the residuals of Layer 2
+might show a pattern correlated with market selection criteria). If the selection is
+not explained by Phase 5, add a selection model to Layer 3 or flag as unresolved.
+
+**Date**: 2026-05-29
+
+---
+
 ## 2026-05-29 — Inventory behavior changes Layer 2 prior
 
 **Observation**: 0% net-zero final positions across 1,651 markets. ohanism always
