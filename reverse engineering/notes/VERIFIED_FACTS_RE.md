@@ -130,4 +130,17 @@ book event; new_market events have 0 intersection with fill token_ids.
 
 ---
 
+---
+
+**Fact**: Polars 0.20.31 raises `PanicException: called Option::unwrap() on a None value`
+in `polars-parquet/src/arrow/read/statistics/mod.rs` when scanning Parquet files produced
+by the EC2 rotator on 2026-05-28 and 2026-05-29. Root cause: Parquet row-group
+statistics in those files contain None values in a field Polars expects to be non-null.
+Fix: `use_statistics=False` in `pl.scan_parquet()` — disables statistics-based predicate
+pushdown without affecting correctness. Applied in `io/local_reader.py`.
+**Source**: Empirical — observed on full-data sync 2026-05-29T08:53.
+**Date**: 2026-05-29
+
+---
+
 *(Further Phase 2+ facts appended as analysis proceeds.)*

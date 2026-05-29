@@ -27,7 +27,8 @@ from reverse_engineering.tables.ohanism_fills import (
     write_ohanism_fills,
     OHANISM_FILLS_COLUMNS,
 )
-from reverse_engineering.tables.market_enrichment import build_full_market_lookup
+from reverse_engineering.io.gamma import fetch_markets_by_slug_range
+from reverse_engineering.tables.market_enrichment import build_start_strike_prices
 from reverse_engineering.tables.inventory import (
     build_inventory_series,
     compute_peak_inventory_per_market,
@@ -79,44 +80,98 @@ OLD = {
 
 t_total = time.time()
 
-# ── Step 1: Build ohanism_fills for full window ───────────────────────────────
-print("Step 1: Building ohanism_fills for full window...")
-t1 = time.time()
-fills_full = build_ohanism_fills(WINDOW_DATES)
-print(f"  {len(fills_full)} fills in {time.time()-t1:.0f}s")
+# ── Step 1: Build ohanism_fills for full window (checkpoint) ─────────────────
+_fills_ckpt = cfg.tables_dir / "ohanism_fills_full_ckpt.parquet"
+if _fills_ckpt.exists():
+    print("Step 1: Loading fills from checkpoint...")
+    fills_full = pl.read_parquet(str(_fills_ckpt))
+    print(f"  {len(fills_full)} fills loaded from checkpoint")
+else:
+    print("Step 1: Building ohanism_fills for full window...")
+    t1 = time.time()
+    fills_full = build_ohanism_fills(WINDOW_DATES)
+    fills_full.write_parquet(str(_fills_ckpt), compression="zstd")
+    print(f"  {len(fills_full)} fills in {time.time()-t1:.0f}s (checkpoint saved)")
 
-# ── Step 2: Market metadata enrichment ───────────────────────────────────────
-print("Step 2: Enriching with Gamma market metadata...")
+# ── Step 2: Market metadata enrichment (slug-based Gamma lookup) ──────────────
+print("Step 2: Enriching with Gamma market metadata (slug-based)...")
 t2 = time.time()
-fill_tids = set(fills_full["token_id"].to_list())
-market_lookup = build_full_market_lookup(fill_tids, WINDOW_DATES)
-fills_full = fills_full.join(
-    market_lookup.rename({c: f"_g_{c}" for c in market_lookup.columns if c != "token_id"}),
-    on="token_id", how="left"
+
+# Window in Unix seconds
+WINDOW_START_UNIX = 1779854400  # 2026-05-27 04:00 UTC
+WINDOW_END_UNIX   = 1780030200  # 2026-05-29 04:59 UTC
+
+# Slug-based lookup: cache-only (no API calls in A3 — warm cache separately)
+from reverse_engineering.io.gamma import _load_cached_cids
+_gamma_raw = _load_cached_cids()
+# Build DataFrame from cached entries only
+_gamma_records = []
+for _key, _meta in _gamma_raw.items():
+    _token_ids_raw = _meta.get("token_ids_json", "[]")
+    try:
+        _token_ids = json.loads(_token_ids_raw) if isinstance(_token_ids_raw, str) else _token_ids_raw
+    except (json.JSONDecodeError, TypeError):
+        _token_ids = []
+    for _i, _tid in enumerate(_token_ids):
+        _gamma_records.append({
+            "token_id": str(_tid),
+            "market": _meta.get("condition_id", ""),
+            "asset_symbol": _meta.get("asset_symbol", ""),
+            "horizon": _meta.get("horizon", ""),
+            "outcome_side": "Up" if _i == 0 else "Down",
+            "start_date_unix": float(_meta.get("start_date_unix", 0) or 0),
+            "end_date_unix": float(_meta.get("end_date_unix", 0) or 0),
+        })
+gamma_lookup = pl.DataFrame(_gamma_records).unique(subset=["token_id"]) if _gamma_records else pl.DataFrame(
+    schema={"token_id": pl.Utf8, "market": pl.Utf8, "asset_symbol": pl.Utf8,
+            "horizon": pl.Utf8, "outcome_side": pl.Utf8,
+            "start_date_unix": pl.Float64, "end_date_unix": pl.Float64}
 )
-# Apply metadata
-for col in ["market", "asset_symbol", "horizon", "outcome_side", "start_date_unix", "end_date_unix"]:
+print(f"  Gamma slug lookup: {len(gamma_lookup)} token rows in {time.time()-t2:.0f}s")
+
+fill_tids = set(fills_full["token_id"].to_list())
+gamma_filtered = gamma_lookup.filter(pl.col("token_id").is_in(list(fill_tids)))
+print(f"  Matched: {len(gamma_filtered)}/{len(fill_tids)} fill tokens ({len(gamma_filtered)/len(fill_tids)*100:.1f}%)")
+
+# Rename Gamma cols to avoid conflict with existing null cols in fills
+g_rename = {c: f"_g_{c}" for c in gamma_filtered.columns if c != "token_id"}
+fills_full = fills_full.join(gamma_filtered.rename(g_rename), on="token_id", how="left")
+
+# Apply only columns that exist in both fills and gamma
+# "market" column may be null in fills; start/end_date_unix are NOT in fills schema
+for col in ["market", "asset_symbol", "horizon", "outcome_side"]:
     g_col = f"_g_{col}"
-    if g_col in fills_full.columns:
+    if g_col not in fills_full.columns:
+        continue
+    if col in fills_full.columns:
         fills_full = fills_full.with_columns(
             pl.when(pl.col(g_col).is_not_null()).then(pl.col(g_col))
             .otherwise(pl.col(col)).alias(col)
         ).drop(g_col)
-fills_full = fills_full.with_columns(
-    pl.when(pl.col("end_date_unix").is_not_null())
-    .then(pl.col("end_date_unix") - pl.col("t_block_ns").cast(pl.Float64) / 1e9)
-    .otherwise(pl.col("time_to_expiry_s"))
-    .alias("time_to_expiry_s")
-)
-print(f"  Metadata coverage: {fills_full['asset_symbol'].drop_nulls().len()}/{len(fills_full)}"
-      f" ({fills_full['asset_symbol'].drop_nulls().len()/len(fills_full)*100:.1f}%) in {time.time()-t2:.0f}s")
+    else:
+        fills_full = fills_full.rename({g_col: col})
 
-# start_strike_price
-strikes = market_lookup.unique(subset=["market"]).select(["market", "asset_symbol", "start_date_unix"])
-from reverse_engineering.tables.market_enrichment import build_start_strike_prices
+# time_to_expiry_s from end_date_unix (Gamma column, not in fills schema)
+if "_g_end_date_unix" in fills_full.columns:
+    fills_full = fills_full.with_columns(
+        pl.when(pl.col("_g_end_date_unix").is_not_null())
+        .then(pl.col("_g_end_date_unix") - pl.col("t_block_ns").cast(pl.Float64) / 1e9)
+        .otherwise(pl.col("time_to_expiry_s"))
+        .alias("time_to_expiry_s")
+    ).drop("_g_end_date_unix")
+
+# Drop _g_start_date_unix if present (used only for start_strike lookup below)
+if "_g_start_date_unix" in fills_full.columns:
+    fills_full = fills_full.drop("_g_start_date_unix")
+covered = fills_full["asset_symbol"].drop_nulls().len()
+print(f"  Metadata coverage: {covered}/{len(fills_full)} ({covered/len(fills_full)*100:.1f}%)")
+
+# start_strike_price from Binance bookTicker
+strikes = gamma_filtered.unique(subset=["market"]).select(
+    ["market", "asset_symbol", "start_date_unix"]
+)
 strikes_with_s = build_start_strike_prices(strikes, WINDOW_DATES)
 if "start_strike_price" in strikes_with_s.columns:
-    from decimal import Decimal
     fills_full = fills_full.join(
         strikes_with_s.select(["market", "start_strike_price"]).rename(
             {"start_strike_price": "_g_strike"}),

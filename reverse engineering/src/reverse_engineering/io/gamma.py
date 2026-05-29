@@ -37,15 +37,23 @@ def _cache_path() -> Path:
 
 
 def _load_cached_cids() -> dict[str, dict[str, Any]]:
-    """Load previously fetched CID→metadata from cache."""
+    """Load previously fetched metadata from cache.
+
+    Keys are normalised to "slug:{slug}" when a slug is available.
+    Falls back to the raw condition_id column for legacy entries.
+    """
     path = _cache_path()
     if not path.exists():
         return {}
     df = pl.read_parquet(str(path))
     result: dict[str, dict[str, Any]] = {}
     for row in df.iter_rows(named=True):
-        cid = row["condition_id"]
-        result[cid] = {k: v for k, v in row.items() if k != "condition_id"}
+        meta = dict(row)
+        slug_val = meta.get("slug", "")
+        # Prefer "slug:..." key so fetch_markets_by_slug_range cache-hits correctly
+        key = f"slug:{slug_val}" if slug_val else row.get("condition_id", "")
+        if key:
+            result[key] = meta
     return result
 
 
@@ -95,6 +103,8 @@ def fetch_markets_by_slug_range(
 
     cached = _load_cached_cids()
     records: list[dict[str, Any]] = []
+    _new_since_save = 0
+    _save_every = 200  # save cache every 200 new slugs fetched
 
     for slug, asset_sym, horizon_name in slugs:
         cache_key = f"slug:{slug}"
@@ -151,6 +161,10 @@ def fetch_markets_by_slug_range(
                 "neg_risk": False,
             }
             cached[cache_key] = meta
+            _new_since_save += 1
+            if _new_since_save >= _save_every:
+                _save_cached_cids(cached)
+                _new_since_save = 0
             time.sleep(_SLEEP_S)
 
         token_ids = json.loads(meta.get("token_ids_json", "[]"))
