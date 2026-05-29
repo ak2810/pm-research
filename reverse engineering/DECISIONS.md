@@ -339,10 +339,30 @@ mean absolute per-position gap < 5% with no systematic bias.
 - If gap < 5% and unbiased → accounting-methodology hypothesis confirmed, Phase 5 cleared
 - If systematic bias → find and fix the bug, re-run G6
 
-**Resolution (2026-05-29)**: Pre-5.F PASSED. All 4 resolved positions show < 1% gap
-(0.3%, 0.4%, 0.6%, 0.7%). Formula confirmed correct at per-position level.
-Leaderboard vol/pnl are 24h rolling metrics (not lifetime) — gap not comparable to 49h window.
-BLOCKER-007 RESOLVED. Phase 5 cleared.
+**Resolution (2026-05-29)**: Pre-5.F PASSED on 4 positions (0.3-0.7% gap), BUT the test code
+used the CORRECT formula (price_f = 1-price for Down fills). The main scripts had the bug.
+
+**BLOCKER-007b (opened after external leaderboard data)**: Pre-5.G found leaderboard API
+ignores window parameter — returns same value for all windows. External UI shows ohanism
+monthly +$173,508, weekly +$26,296. Our -$83,831 was ARITHMETICALLY IMPOSSIBLE if our window
+is inside that month.
+
+**Root cause found (Pre-5.H + _probe_formula_comparison.py)**:
+SELL Down fills (~50% of all fills): `price_f` should be `1 - price_Down` (canonical Up cost
+basis), but both pre5a and pre5de used raw `price` (the Down token's fill price). For BUY Down
+fills: same error. BUY Up and SELL Up were correct (price = canonical Up price for those).
+
+**Impact**: For ohanism's typical ITM Down sells (q_D ≈ 0.65):
+- Wrong formula (q_D = 0.65 as price_f): SELL Down MTM = -85,369 USDC
+- Correct formula (1-q_D = 0.35 as price_f): SELL Down MTM = +5,033 USDC
+- Correction = +90,402 USDC for SELL Down alone
+
+**Fixed**: one-line fix in both scripts: `price_f = 1-price if outcome_side=="Down" else price`
+
+**Corrected G6 result**: Net P&L = +7,390 USDC. G6 PASS ✓.
+Extrapolated monthly = +108,591 USDC vs external +173,508 (ratio 1.6×, plausible).
+
+**BLOCKER-007b RESOLVED. Phase 5 CLEARED.**
 
 **Date**: 2026-05-29
 

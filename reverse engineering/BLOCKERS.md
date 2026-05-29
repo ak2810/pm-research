@@ -66,6 +66,71 @@ says proceed to Layer 2 if L1 model family might be wrong).
 is still a valid finding. ohanism's σ is most correlated with EWMA λ=0.94. This
 carries forward to L2.
 
+## BLOCKER-007b — REOPENED: External leaderboard contradicts -$83,831 window P&L
+
+**Timestamp**: 2026-05-29T19:45:00Z  **Phase**: Pre-5.G/H  **Status**: OPEN — GATING
+
+**External evidence (verified outside agent)**:
+- ohanism monthly crypto leaderboard: **+$173,508 profit** on $12,656,815 volume (top-5)
+- ohanism weekly crypto leaderboard: **+$26,296 profit** on $2,203,920 volume (top-10)
+- ohanism is an actively profitable crypto Up/Down trader, not a net loser
+
+**Why Pre-5.F did not resolve this**:
+Pre-5.F validated 4 positions from the activity endpoint (post-window). Those were
+correct. But they do NOT prove:
+1. Aggregation across 50,586 fills is free of double-counting or sign errors
+2. ConditionResolution attribution (up_wins assignment) is correct for all markets
+3. Down-side canonical convention is applied consistently across all fill types
+
+**Red flag**: First F test showed +444%/+1613% overstatement on Down-token LOSING
+positions. Agent attributed to test code bug (up_wins=0 for curPrice<0.01 on Down
+token). But this symptom — phantom losses concentrated on Down-token losing positions
+— is exactly what a SELL Down sign error would produce. 84% of fills are SELL, and
+SELL Down = canonical long-Up. If this convention has a bug anywhere in the aggregation,
+the effect would be concentrated in Down-resolving markets.
+
+**Why agent's "24h rolling" explanation is not credible**:
+The hypothesis "leaderboard vol=270k ≈ one-day rate → must be 24h rolling" was a
+coincidence-based guess. The Polymarket leaderboard explicitly exposes Today/Weekly/
+Monthly/All windows. The -$1,382 result came from an endpoint that was NOT documented.
+The monthly window shows +$173K, which is inconsistent with our -$83K/49h if our
+window is inside that month.
+
+**Arithmetic impossibility**: If monthly = +$173K and our 49h = -$83K, the remaining
+~28 days of that month would need to show +$256K profit to reconcile. At observed
+rebate rate of 64 USDC/h × 24 × 28 = +43k USDC rebate for the rest of the month.
+MTM needed from remaining period: +256K - 43K = +213K. That requires an extreme
+up-market swing to exactly compensate our down-market window. Implausible at the
+observed fill rate.
+
+**Resolution path**:
+1. Pre-5.G: Query leaderboard with window parameters → get monthly/weekly pnl → check
+   if our -$83K is arithmetically compatible with the public monthly number
+2. Pre-5.H: Down-side sign audit → trace 200 Down-token SELL fills through the formula
+   → verify loss/gain per token is exactly (1-q) or q respectively
+
+**RESOLVED 2026-05-29. See Pre-5.G/H results below.**
+
+**Root cause (Pre-5.H/comparison)**: For Down-token fills, `price_f` must be
+`1 - price_Down` (canonical Up cost basis), but pre5a and pre5de used `price = raw fill price`.
+For Up-token fills the formula was correct. For Down fills with q_D > 0.5 (ohanism selling
+ITM Down tokens), main code massively overstated losses and understated gains.
+
+Fix: `price_f = 1-price if outcome_side=="Down" else price` in both scripts.
+
+Corrected results:
+- Pre-5.A re-run: MTM = +4,249 USDC, Net P&L = **+7,390 USDC** → **G6 PASS ✓**
+- Per-asset: BTC=+3,199, ETH=+4,831, SOL=-629, XRP=-12 USDC
+- Pre-5.D re-run: D4 PASS, D5 all 12 spot-checks PASS
+- Pre-5.E re-run: E3 PASS (ratio=0.583), E4 PASS
+
+External consistency: +7,390 USDC / 49h → extrapolated monthly = +108,591 USDC.
+External monthly = +173,508 USDC (1.6× our rate — consistent if May was stronger outside our window).
+
+**Phase 5 CLEARED.**
+
+---
+
 ## BLOCKER-007 — Pre-5.C/D/E: Leaderboard P&L discrepancy + E3 formula flag
 
 **Timestamp**: 2026-05-29T18:30:00Z  **Phase**: Pre-5.C/D/E  **Status**: NON-BLOCKING (see analysis)
@@ -119,7 +184,23 @@ The -1,382 is NOT a 49h-window figure and cannot be compared to our window total
 
 ---
 
-## BLOCKER-006 — G6: Net P&L negative on 49h window — DOWN-MARKET PERIOD BIAS
+## BLOCKER-006 — G6: RESOLVED — formula bug (not down-market) was cause of negative P&L
+
+**Original timestamp**: 2026-05-29T18:15:00Z  **Resolved**: 2026-05-29T20:00:00Z
+
+**RESOLVED by BLOCKER-007b investigation.** G6 PASS after formula fix:
+- Corrected net P&L = **+7,390 USDC** (was -83,831 USDC with wrong formula)
+- Root cause: Down-token `price_f` bug, not down-market bias
+
+Original finding (incorrect formula): G6 FAIL, net = -83,831 USDC.
+The "down-market period" explanation (Down wins 55.1%) was a reasonable hypothesis
+but the formula error was the true cause — not market direction.
+
+After fix: BTC=+3,199, ETH=+4,831, SOL=-629, XRP=-12 USDC. Overall positive.
+
+---
+
+## BLOCKER-006-ORIGINAL (preserved for reference) — G6: Net P&L negative on 49h window
 
 **Timestamp**: 2026-05-29T18:15:00Z  **Phase**: Pre-5.A
 

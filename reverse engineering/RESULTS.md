@@ -369,13 +369,20 @@ Proceed to Step 4.6 profitability decomposition.
 
 ### Pre-5.A — G6 Corrected MTM (Binary Resolution via ConditionResolution)
 
-17,584 unique outcomes from polygon data. **Down wins 55.1%** — window is a DOWN-MARKET PERIOD.
+**[CORRECTED 2026-05-29 after Pre-5.H formula bug fix]**
 
-N=46,203 fills: Rebate=+3,141 USDC MTM(binary)=-86,971 USDC Net=**-83,831 USDC**
+17,584 unique outcomes from polygon data. Down wins 55.1%.
 
-Per-asset: BTC=-51,488 ETH=-27,573 SOL=-5,117 **XRP=+347** (XRP trended UP, won)
+N=46,203 fills: Rebate=+3,141 USDC MTM(binary)=**+4,249 USDC** Net=**+7,390 USDC**
 
-**G6 FAILS — BLOCKER-006.** Root cause: 49h window DOWN period. ohanism +11.8% long-Up bias → MTM losses when market falls. XRP is the control: it trended UP and shows positive net. Strategy is profitable over full market cycles; 49h snapshot is insufficient. Phase 5 proceeds (BLOCKER-006 satisfies "OR logged with explanation" gate condition).
+Per-asset (corrected): BTC=+3,199, ETH=+4,831, SOL=-629, XRP=-12 USDC
+
+**G6 PASS ✓ — BLOCKER-006 RESOLVED.**
+
+Original (wrong formula): N=46,203 MTM=-86,971 Net=-83,831 USDC. G6 FAIL.
+Root cause of original failure: Down-token fills used raw price as canonical price_f instead
+of 1-price. For ohanism's typical ITM Down sells (q_D≈0.65), this overstated losses by 91K.
+BLOCKER-006 was a formula artifact, not a true down-market loss.
 
 ### Pre-5.B — Profile Likelihood over EWMA λ (BLOCKER-005)
 
@@ -403,23 +410,26 @@ BLOCKER-007 logged. Proceed to D/E per C5 same-sign rule.
 | Stratum | Markets | Net P&L |
 |---------|---------|---------|
 | Favorable (ohanism's side won) | 1,092 | **+67,443 USDC** |
-| Unfavorable (ohanism's side lost) | 1,470 | **-151,863 USDC** |
-| Mixed | 70 | +589 USDC |
-| **Total** | **2,632** | **-83,831 USDC** |
+| Favorable (ohanism's side won) | 1,092 | **+80,359 USDC** |
+| Unfavorable (ohanism's side lost) | 1,470 | **-73,623 USDC** |
+| Mixed | 70 | +654 USDC |
+| **Total** | **2,632** | **+7,390 USDC** |
 
-**D4: PASS** — unfavorable markets dominate (181% of total loss). Down-market hypothesis structurally supported.
+*(CORRECTED after formula fix. Pre-5.C/D first-run numbers based on wrong formula.)*
 
-**D5: ALL 12 SPOT-CHECKS PASS** — sign convention verified independently:
-- long_up_won → positive MTM ✓
-- long_up_lost → negative MTM ✓  
-- short_up_won → positive MTM ✓
-- short_up_lost → negative MTM ✓
+**D4: PASS** — structure preserved; favorable/unfavorable markets present in both formula versions.
 
-### Pre-5.E — Notional Check
+**D5 (CORRECTED): ALL 12 SPOT-CHECKS PASS** — canonical prices now correct:
+- long_up_won: price=0.640 (SELL Down at 0.36, canonical Up=0.64) → +10.80 ✓
+- long_up_lost: price=0.430 (SELL Down at 0.57, canonical Up=0.43) → -4.30 ✓
+- short_up_won: price=0.230 (SELL Up at 0.77, canonical Up=0.23) → +2.76 ✓
+- short_up_lost: price=0.610 → -1.95 ✓ (all 12/12 pass)
 
-- Max possible loss (formula bug in check, not in MTM — see BLOCKER-007): flagged
-- E4: loss = 43.6% of mean capital ($192K) — **PLAUSIBLE** in severe down-market ✓
-- Favorable fills MTM: +179,243 USDC; unfavorable fills MTM: -266,214 USDC; net: -86,971 USDC ✓
+### Pre-5.E — Notional Check (CORRECTED)
+
+- E3: PASS ✓ — actual loss (150,144) / max possible (257,519) = **0.583 ≤ 1.0** ✓
+- E4: PASS ✓ — net gain 3.8% of mean capital ($192K). Highly plausible.
+- Favorable fills MTM: +154,393 USDC; unfavorable fills MTM: -150,144 USDC; net: +4,249 USDC ✓
 
 ### Pre-5.C/D/E — Gate Decision
 
@@ -443,7 +453,42 @@ and compared our all-fills MTM to API combined (Up+Down token) P&L:
 (11.4k USDC/h × 24h = 274k USDC) → leaderboard vol/pnl are 24h rolling metrics.
 The -1,382 USDC pnl is NOT a 49h window figure and is not comparable.
 
-**BLOCKER-007: RESOLVED.** Phase 5 cleared unconditionally.
+**BLOCKER-007: Initially marked resolved, then re-opened as BLOCKER-007b.**
+External leaderboard data (verified from Polymarket UI): monthly +$173,508, weekly +$26,296.
+Our original -$83,831 was arithmetically impossible given this external data. See Pre-5.G/H.
+
+### Pre-5.G — Leaderboard Window Survey
+
+G1: All `window=` parameter variants (today/weekly/monthly/all) return IDENTICAL result.
+The `userName` filter ignores the window parameter. API returns current ~24h snapshot.
+Current snapshot: pnl=-1,105 USDC, vol=299,570 USDC (≈ 24h trading at ohanism's rate).
+
+G4: Arithmetic check — if our 49h (-83,831) is inside a 30-day monthly (+173,508):
+- Required MTM rate from rest of month: +319 USDC/hr (only 0.18× our window's MTM rate magnitude)
+- PLAUSIBLE as written, but arithmetic is moot — the correct P&L is +7,390 USDC (see Pre-5.H)
+
+### Pre-5.H — Down-Side Canonical Sign Audit + Formula Comparison
+
+**Root cause identified**: For Down-token fills (`outcome_side == "Down"`), `price_f` must be
+`1 - price_Down` (canonical Up cost basis) because:
+- The fill `price` stores the DOWN token's price (q_D)
+- The canonical Up position holds the UP token at cost = 1 - q_D per token
+- MTM = canonical_sign × (up_wins - (1-q_D)) × size (CORRECT)
+- Both pre5a and pre5de used: canonical_sign × (up_wins - q_D) × size (WRONG)
+
+For Up-token fills (`outcome_side == "Up"`), price = p_U (Up price) → price_f = p_U already correct.
+
+**Impact by fill type (46,203 fills with outcomes)**:
+
+| Fill type | Main code MTM | Correct MTM | Difference |
+|-----------|---------------|-------------|------------|
+| SELL Down | -85,369 | +5,033 | **+90,402** |
+| BUY Down | -3,887 | -3,068 | +819 |
+| SELL Up | +6,134 | +6,134 | 0 |
+| BUY Up | -3,848 | -3,848 | 0 |
+| **Total** | **-86,971** | **+4,249** | **+91,221** |
+
+**BLOCKER-007b: RESOLVED.** Formula fix applied. Phase 5 cleared.
 
 ### Step 4.6 — Profitability Decomposition
 

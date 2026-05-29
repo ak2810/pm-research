@@ -72,7 +72,11 @@ fills_w = fills.filter(
     & pl.col("t_block_ns").is_not_null() & pl.col("asset_symbol").is_not_null()
     & pl.col("time_to_expiry_s").is_not_null()
 ).with_columns([
-    pl.col("price").cast(pl.Float64).alias("price_f"),
+    # Canonical Up price: Down fills store Down price; canonical = 1 - price_Down.
+    pl.when(pl.col("outcome_side") == "Down")
+      .then(1.0 - pl.col("price").cast(pl.Float64))
+      .otherwise(pl.col("price").cast(pl.Float64))
+      .alias("price_f"),
     pl.col("size").cast(pl.Float64).alias("size_f"),
     pl.col("rebate_received").cast(pl.Float64).alias("rebate_f"),
 ])

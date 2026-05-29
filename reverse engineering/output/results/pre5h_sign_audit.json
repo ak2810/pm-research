@@ -1,0 +1,13 @@
+{
+  "sell_down_total": 25336,
+  "sell_down_with_outcome": 24446,
+  "formula_exact_match_pct": 100.0,
+  "down_won_sample_errors": 0,
+  "up_won_sample_errors": 0,
+  "our_total_sell_down_mtm": 5032.5512,
+  "expected_total_mtm": 5032.5512,
+  "aggregate_gap": 0.0,
+  "up_win_rate": 43.5,
+  "sell_down_dup_count": 481,
+  "all_fills_dup_count": 1037
+}

@@ -1,0 +1,30 @@
+{
+  "main_total_mtm": -86971.42,
+  "correct_total_mtm": 4249.41,
+  "rebate_total": 3140.8,
+  "main_net_pnl": -83830.62,
+  "correct_net_pnl": 7390.2,
+  "correction_total": 91220.82,
+  "by_fill_type": {
+    "SELL_Down": {
+      "main": -85369.29,
+      "correct": 5032.55,
+      "n": 24446
+    },
+    "BUY_Up": {
+      "main": -3848.35,
+      "correct": -3848.35,
+      "n": 3065
+    },
+    "SELL_Up": {
+      "main": 6133.55,
+      "correct": 6133.55,
+      "n": 14537
+    },
+    "BUY_Down": {
+      "main": -3887.32,
+      "correct": -3068.34,
+      "n": 4155
+    }
+  }
+}

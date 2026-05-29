@@ -1,9 +1,22 @@
 ## CURRENT
-**Phase**: Pre-5 verification COMPLETE — Phase 5 CLEARED
-**Sub-step**: Pre-5.F done — BLOCKER-007 RESOLVED
-**Started**: 2026-05-29T19:30:00Z
+**Phase**: Pre-5 verification COMPLETE — Phase 5 CLEARED (all gates pass)
+**Sub-step**: Pre-5.G/H complete — formula bug found and fixed — G6 PASS
+**Started**: 2026-05-29T20:00:00Z
 
 ## JUST DID
+Pre-5.G/H COMPLETE (2026-05-29T20:00Z): root cause found and fixed.
+
+Bug: Down-token fills (SELL Down, BUY Down) used price_f=raw_price instead of 1-raw_price.
+For ohanism's typical ITM Down sells (q_D~0.65), this overstated losses by $91K total.
+Fix: `price_f = 1-price if outcome_side=="Down" else price` in pre5a and pre5de scripts.
+
+CORRECTED RESULTS:
+- Net P&L: +7,390 USDC (was -83,831 USDC)
+- G6: PASS (was FAIL)
+- E3: PASS (ratio=0.583, was FAIL with wrong formula)
+- External: extrapolated monthly = +109K vs public +173K (ratio 1.6x, plausible)
+- BLOCKER-006: RESOLVED. BLOCKER-007b: RESOLVED.
+
 Pre-5.F COMPLETE (2026-05-29T19:30Z): per-position formula validated against data-api.
 All 4 resolved positions: gap < 1% (0.3-0.7%). F5 PASS. BLOCKER-007 RESOLVED.
 Leaderboard -1,382 is 24h rolling metric (not 49h window figure) — no contradiction.
