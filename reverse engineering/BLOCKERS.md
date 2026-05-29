@@ -68,6 +68,29 @@ carries forward to L2.
 
 ---
 
+## BLOCKER-004 — Phase 4 L1 gate fails at all σ_implied approaches: inversion ill-conditioned
+
+**Timestamp**: 2026-05-29T16:30:00Z  **Phase**: 4 — Step 4.3b
+
+| Approach | Best M5 R² | Best M1 | Root cause |
+|----------|-----------|---------|------------|
+| v1 (fill time) | 0.290 | ewma_94 R²=0.245 | Drift noise at fill time |
+| v2 (post time) | 0.096 | ewma_90 R²=0.049 | S_t≈S_0 at post → log ratio ≈ 0 → amplified noise |
+
+**Dual failure**: Both approaches fail R²≥0.40. v1 is noisy due to post-fill drift. v2 is
+noisier because at market open, S_t≈S_0 → log(S_0/S_t) is tiny, and dividing by √τ_post
+(≈0.003 for 5m) amplifies noise to be comparable with the true σ signal.
+
+**Consistent finding**: ewma_90/ewma_94 dominate M1 in BOTH approaches (all β>0, p<0.001).
+The σ recipe family (EWMA) is identified; the gate failure is measurement noise, not model
+misspecification.
+
+**Recommendation**: Proceed with L2 (structural policy estimation) per Option B.
+ewma initialization: λ≈0.90-0.94, β≈0.75-0.92 from M1. L2 recovers σ recipe parameters
+without requiring σ_implied inversion as an intermediate.
+
+---
+
 ## BLOCKER-002 — data-api reconciliation impossible for historical windows (non-blocking)
 
 **Timestamp**: 2026-05-29T02:20:00Z

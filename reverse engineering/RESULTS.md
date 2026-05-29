@@ -281,7 +281,27 @@ Signs stable M1→M5 ✓. **BLOCKER-003 logged.**
 
 **Key takeaway (valid despite gate)**: ewma_94 dominates (β=0.47, R²=0.245). ohanism's σ correlates most strongly with EWMA λ=0.94.
 
-**Path forward per BLOCKER-003**: Use pm_clob level-change based opening quotes (Option A) OR skip L1 and proceed directly to L2 structural policy estimation.
+**Path forward per BLOCKER-003**: Option A attempted in Step 4.1b/4.3b. Gate still fails (BLOCKER-004 logged). Proceeding to L2 per Option B.
+
+### Step 4.1b + 4.3b — pm_clob post-time approach (GATE FAILS — BLOCKER-004)
+
+σ_implied_v2: 1,103 markets; BTC 5m median=0.312 ✓; lag median=325s p25=32s ✓; r=0.371 ✓.
+
+v2 R² at M5=0.096 — WORSE than v1 (0.290). Root cause: S_t≈S_0 at post → log ratio ≈ 0.001 
+→ divided by √τ≈0.003 → noise amplified 333×. SNR≈1 at market open. σ_implied_v2 is dominated 
+by measurement noise, not σ signal.
+
+| M1 estimator | v1 R² | v2 R² | Note |
+|---|---|---|---|
+| ewma_90 | 0.241 | **0.049** | Both significant, EWMA dominates |
+| ewma_94 | **0.245** | 0.045 | Primary σ recipe signal |
+| garch | 0.222 | 0.040 | Confirms EWMA family |
+
+**Consistent conclusion (v1 AND v2)**: EWMA (λ≈0.90-0.94) is the σ recipe family.
+Gate failure = measurement noise, not model misspecification.
+
+**Decision**: Option B — proceed directly to L2 structural policy estimation.
+L2 initialization: ewma_90/ewma_94, β≈0.75-0.92.
 
 ---
 
