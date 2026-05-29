@@ -128,8 +128,9 @@ def build_start_strike_prices(
                     columns=["e", "s", "b", "a", "t_recv_ns"],
                 )
                 df = lf.filter(
-                    (pl.col("e") == "bookTicker")
-                    & (pl.col("s").str.to_lowercase() == f"{stream_base}usdt")
+                    pl.col("e").is_null()
+                    & pl.col("b").is_not_null()
+                    & (pl.col("s").str.to_lowercase() == stream_base)
                     & (pl.col("t_recv_ns") >= min_ns)
                     & (pl.col("t_recv_ns") <= max_ns)
                 ).collect()

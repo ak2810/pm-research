@@ -26,13 +26,14 @@ Phase 2 — Maker/Taker Decomposition:
 4. Builder fingerprint analysis.
 Acceptance: ACCEPTANCE.md Phase 2 all boxes checked.
 
-**Phase 2 STATUS: Stats + inventory plots complete. Market metadata still pending.**
+**Phase 2 COMPLETE. All acceptance gates pass.**
 
-## NEXT
-1. Wait for Gamma slug lookup to complete → rebuild ohanism_fills with full metadata
-   (asset_symbol, horizon, outcome_side, time_to_expiry_s, start_strike_price)
-2. Commit all Phase 2 code + plots
-3. Then begin Phase 3 — Order Lifecycle Reconstruction
+## NEXT — Phase 3: Order Lifecycle Reconstruction
+1. Build level_changes table from pm_clob price_change events
+2. Reconstruct per-order trajectories (quote lifetime, repricing pattern)
+3. Classify: persistent / repricing / pulled
+4. Time-on-book histogram → output/plots/quote_lifetime_histogram.png
+Acceptance: ACCEPTANCE.md Phase 3 all boxes checked.
 
 ---
 

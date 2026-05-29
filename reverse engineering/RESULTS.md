@@ -170,3 +170,16 @@ market prices) OR exploiting asymmetric taker demand for Up tokens in a trending
 
 Plots: output/plots/inventory_lifecycle.png, total_dollar_exposure.png,
 peak_inventory_distribution.png. Full stats: output/results/phase2_stats.json.
+
+### Market metadata (from Gamma slug API, post-Phase-2 addition)
+- Coverage: **95.3%** (20,438/21,451 fills enriched)
+- Null 4.7% (1,013): from pre-recording markets (before data collection started 2026-05-27 03:00 UTC)
+- Horizon mix: **5m=74.8%** (16,052), **15m=20.5%** (4,386) — NO hourly markets
+- Asset mix: BTC=62.8% (13,481), ETH=20.2% (4,326), SOL=7.1% (1,517), XRP=5.2% (1,114)
+  — NO DOGE (Gamma confirms no DOGE updown 5m/15m on 2026-05-27)
+- Sample BTC fill: price=0.61, TTE=208s (3.5min into 5m market), strike=$75,680
+
+**Key finding**: ohanism trades predominantly short-dated (5m) BTC markets, with
+ETH as the second-largest asset. NO hourly markets in this window. Consistent with
+high-frequency MM on the shortest-lived markets where information advantage decays
+fastest and rebate economics are most favorable.
