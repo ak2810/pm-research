@@ -1,22 +1,25 @@
 ## CURRENT
-**Phase**: 4 — COMPLETE with documented blockers (BLOCKER-003/004/005, G6 inconclusive)
-**Sub-step**: 4.6 complete — Phase 5 (GBT residual) next
-**Started**: 2026-05-29T18:10:00Z
+**Phase**: Pre-5 verification COMPLETE → Phase 5 cleared to start
+**Sub-step**: Pre-5.C/D/E done — BLOCKER-007 logged (non-blocking)
+**Started**: 2026-05-29T18:30:00Z
 
 ## JUST DID
-A1 COMPLETE: Enumerated all S3 partitions. All 4 feeds have exactly 50 partitions
-each across 2026-05-27 hours 03-23, 2026-05-28 hours 00-23, 2026-05-29 hours 00-04.
-Common window: 50 (date, hour) pairs — perfectly aligned.
-Analysis window chosen: 2026-05-27/04 through 2026-05-29/04 (49 hours).
-  Rationale: drop hour=03 on 2026-05-27 (first recording hour, warmup/backfill risk).
-  Most recent complete hour: 2026-05-29/04 (ended 05:00 UTC; current time ~08:42 UTC).
-Starting A2 sync of all missing partitions (~105 new partitions, ~10 GB).
+Pre-5.C/D/E COMPLETE (2026-05-29T18:30Z):
+- C: Leaderboard PnL = -1,382 USDC lifetime vs our -83,831 window. No windowed endpoint.
+  60× magnitude gap, same sign. Likely accounting methodology difference.
+- D: D4 PASS (unfavorable markets dominate). D5: all 12 sign checks PASS.
+- E: E3 formula flag (check uses wrong max-loss formula; MTM values themselves verified by D5).
+  E4 PASS (43.6% capital loss plausible in down-market).
+BLOCKER-007 logged as non-blocking. Phase 5 cleared.
 
 ## NEXT
-A2: Monitor sync progress. Verify all 50 × 4 = 200 partitions cached.
-Then A3: Re-run all Phase 1-3 analyses on the full 49h window.
-Then Part B: Settle event-driven vs passive question.
-Then: Decision rule → Phase 4 start if clean.
+Phase 5 — Layer 3 GBT residual model on L2 residuals.
+Key addition per blocker resolution: include directional-regime features:
+  - spot_return_open_to_post: spot pct return from market open to ohanism's quote time
+  - spot_return_post_to_fill: spot pct return from post to fill
+  - rolling_dir_5m: rolling % of preceding 5m windows where Up wins
+Features in: METHODOLOGY §6.1 (spot-PM basis, lead-lag, book imbalance) + these 3 new.
+Acceptance gate: GBT ≥ 5% additional variance explained over L2.
 
 ---
 

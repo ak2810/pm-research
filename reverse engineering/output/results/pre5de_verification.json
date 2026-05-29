@@ -1,0 +1,13 @@
+{
+  "market_count": 2632,
+  "favorable_net": 67443.01,
+  "unfavorable_net": -151862.61,
+  "total_net": -83830.62,
+  "unfav_dominates": true,
+  "max_possible_loss": 179895.5,
+  "actual_mtm_loss_unfav": -266214.38,
+  "loss_pct_of_mean_capital": 43.6,
+  "d4_pass": true,
+  "e3_pass": false,
+  "e4_loss_pct": 43.6
+}

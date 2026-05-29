@@ -1,0 +1,67 @@
+{
+  "endpoints_tried": [
+    {
+      "url": "https://data-api.polymarket.com/v1/leaderboard?userName=ohanism",
+      "status": 200,
+      "desc": "Leaderboard (lifetime pnl)"
+    },
+    {
+      "url": "https://data-api.polymarket.com/pnl?user=0x89b5cdaaa4866c1e738406712012a630b4078beb",
+      "status": 404,
+      "desc": "/pnl?user=0x89b5cdaaa4866c1e738406712012a630b4078b"
+    },
+    {
+      "url": "https://data-api.polymarket.com/profit?user=0x89b5cdaaa4866c1e738406712012a630b4078beb",
+      "status": 404,
+      "desc": "/profit?user=0x89b5cdaaa4866c1e738406712012a630b40"
+    },
+    {
+      "url": "https://data-api.polymarket.com/profit-loss?user=0x89b5cdaaa4866c1e738406712012a630b4078beb",
+      "status": 404,
+      "desc": "/profit-loss?user=0x89b5cdaaa4866c1e738406712012a6"
+    },
+    {
+      "url": "https://data-api.polymarket.com/portfolio?user=0x89b5cdaaa4866c1e738406712012a630b4078beb",
+      "status": 404,
+      "desc": "/portfolio?user=0x89b5cdaaa4866c1e738406712012a630"
+    },
+    {
+      "url": "https://data-api.polymarket.com/history?user=0x89b5cdaaa4866c1e738406712012a630b4078beb&start=1779854400&end=1780030200",
+      "status": 404,
+      "desc": "/history?user=0x89b5cdaaa4866c1e738406712012a630b4"
+    },
+    {
+      "url": "https://data-api.polymarket.com/v1/pnl?user=0x89b5cdaaa4866c1e738406712012a630b4078beb",
+      "status": 404,
+      "desc": "/v1/pnl?user=0x89b5cdaaa4866c1e738406712012a630b40"
+    },
+    {
+      "url": "https://data-api.polymarket.com/v2/pnl?user=0x89b5cdaaa4866c1e738406712012a630b4078beb&start=1779854400&end=1780030200",
+      "status": 404,
+      "desc": "/v2/pnl?user=0x89b5cdaaa4866c1e738406712012a630b40"
+    },
+    {
+      "url": "https://data-api.polymarket.com/activity?user=0x89b5cdaaa4866c1e738406712012a630b4078beb&limit=5",
+      "status": 200,
+      "desc": "Activity (check fields available)"
+    },
+    {
+      "url": "https://gamma-api.polymarket.com/pnl?user=0x89b5cdaaa4866c1e738406712012a630b4078beb",
+      "status": 404,
+      "desc": "/pnl?user=0x89b5cdaaa4866c1e738406712012a630b4078b"
+    },
+    {
+      "url": "https://gamma-api.polymarket.com/portfolio?address=0x89b5cdaaa4866c1e738406712012a630b4078beb",
+      "status": 404,
+      "desc": "/portfolio?address=0x89b5cdaaa4866c1e738406712012a"
+    },
+    {
+      "url": "https://gamma-api.polymarket.com/public-profile?address=0x89b5cdaaa4866c1e738406712012a630b4078beb",
+      "status": 200,
+      "desc": "/public-profile?address=0x89b5cdaaa4866c1e73840671"
+    }
+  ],
+  "windowed_pnl_found": false,
+  "our_net_pnl": -83830.62,
+  "note": "No windowed P&L endpoint available via data-api. Indirect verification via D/E required."
+}

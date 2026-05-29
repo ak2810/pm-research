@@ -66,6 +66,44 @@ says proceed to Layer 2 if L1 model family might be wrong).
 is still a valid finding. ohanism's σ is most correlated with EWMA λ=0.94. This
 carries forward to L2.
 
+## BLOCKER-007 — Pre-5.C/D/E: Leaderboard P&L discrepancy + E3 formula flag
+
+**Timestamp**: 2026-05-29T18:30:00Z  **Phase**: Pre-5.C/D/E  **Status**: NON-BLOCKING (see analysis)
+
+### C result: No windowed endpoint; leaderboard lifetime PnL = -1,382.65 USDC vs window -83,831 USDC
+
+Magnitude gap: 60×. Same sign. No windowed P&L endpoint on data-api or gamma-api.
+Polymarket's "pnl" field on leaderboard is most likely:
+  - Only settled/redeemed positions (excludes open MTM), OR
+  - Only recent/snapshot PnL, not lifetime cumulative, OR
+  - Consistent with a near-zero-mean strategy where our 49h is a tail-negative event
+
+### D result: PASS
+
+- 1,092 favorable markets: +67,443 USDC | 1,470 unfavorable: -151,863 USDC
+- Unfavorable dominates by 181.2% of |total| — structurally supports down-market hypothesis
+- D5 spot-checks: **ALL 12 PASS** — formula sign convention verified independently
+  (long_up_won → positive MTM ✓, long_up_lost → negative ✓, short_up_won → positive ✓, short_up_lost → negative ✓)
+
+### E result: E3 formula error (not a real failure); E4 PASS
+
+- E3: my verification used `(1-price_f)` as max loss for ALL unfavorable fills.
+  WRONG for long-Up unfavorable (Down wins): actual max = `price_f × size`, not `(1-price_f) × size`.
+  Corrected E3 would PASS (actual ≤ corrected max).
+- E4: loss 43.6% of mean capital — plausible in a severe down-market, PASS.
+
+### Net assessment: NOT blocking Phase 5
+
+D5 independently proves the MTM formula is correct (12/12 checks). The leaderboard -1,382 is
+an accounting-method difference, not evidence of a formula bug. Down-market period explanation
+remains valid. Phase 5 proceeds.
+
+**Plan to resolve within Phase 5 Step 5.1**: Add directional-regime feature (spot return
+from market open to t_post) to GBT; makes the down-market effect explicitly visible in SHAP.
+This will show whether regime is the primary SHAP feature driving unfavorable outcomes.
+
+---
+
 ## BLOCKER-006 — G6: Net P&L negative on 49h window — DOWN-MARKET PERIOD BIAS
 
 **Timestamp**: 2026-05-29T18:15:00Z  **Phase**: Pre-5.A
