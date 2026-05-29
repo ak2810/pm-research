@@ -4,6 +4,33 @@ Cumulative findings, updated per phase. Each phase adds a section.
 
 ---
 
+## Full-Data Re-Run — Part A (2026-05-29)
+
+### A1 — Full Window Definition
+
+**S3 enumeration** (all 4 feeds, 2026-05-29T08:42 UTC):
+| Feed | Total partitions | Dates |
+|------|-----------------|-------|
+| pm_clob | 50 | 2026-05-27/03-23, 2026-05-28/00-23, 2026-05-29/00-04 |
+| polygon | 50 | same |
+| binance | 50 | same |
+| pm_meta | 50 | same |
+
+Common (date, hour) pairs: **50** — all four feeds perfectly aligned.
+
+**Analysis window** (A3 re-runs and Phase 4+ modeling):
+- Start: **2026-05-27 04:00 UTC** (drop hour=03: first recording hour, warmup/backfill risk)
+- End: **2026-05-29 04:59 UTC** (most recent complete hour in S3)
+- Duration: **49 hours**
+- Dates: 2026-05-27 (hours 04-23), 2026-05-28 (hours 00-23), 2026-05-29 (hours 00-04)
+
+Prior analysis window: 2026-05-27 hours 03-22 (20 hours, 1 day). This re-run adds
+~29 hours of data (2.45× more data), covering ~2+ full days.
+
+*(A2 sync log, A3 results, and old→new comparison tables added after sync completes.)*
+
+---
+
 ## Phase 0 — Bootstrap
 
 **Environment**:

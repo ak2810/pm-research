@@ -1,52 +1,41 @@
 ## CURRENT
-**Phase**: 1 — Data Validation COMPLETE (with documented exceptions)
-**Sub-step**: 1.7 — Phase 1 summary written, commit pending
-**Started**: 2026-05-29T02:20:00Z
+**Phase**: FULL-DATA RE-RUN (Part A + Part B) before Phase 4
+**Sub-step**: A2 — Syncing all 50 partitions per feed (~10 GB new data)
+**Started**: 2026-05-29T08:42:00Z
 
 ## JUST DID
-Completed Phase 1 data validation for 2026-05-27 (21,451 fills):
-- Reconciliation: count gap 0.53% (0.08% over gate), PnL gap 3.27% — BOTH from
-  data-api boundary timing effects (no date filter, ~3500 item cap). Documented.
-- Sign discipline: CONFIRMED via price formula (100% consistent, 21,451 fills).
-  pm_clob `last_trade_price.side` = book level taken (maker's side), NOT taker direction.
-- Clock alignment test 1: PASS (median t_ws_ns - t_block_ns = -2s, p99=0s).
-- Clock alignment test 2: MARGINAL PASS (~110ms BTC, approximate due to null market metadata).
-- orderHash stitching: PASS (50/50 coherent trajectories).
-- ohanism_fills.parquet written: 21,451 rows, 24 columns.
-- BLOCKER-002 documented: data-api limitation (historical reconciliation impossible).
-- Key bug fixes: config.py parent index, catalog.py Windows path (as_posix()),
-  Polars hive_partitioning=False, ohanism_fills.py partition discovery, rebate formula.
+A1 COMPLETE: Enumerated all S3 partitions. All 4 feeds have exactly 50 partitions
+each across 2026-05-27 hours 03-23, 2026-05-28 hours 00-23, 2026-05-29 hours 00-04.
+Common window: 50 (date, hour) pairs — perfectly aligned.
+Analysis window chosen: 2026-05-27/04 through 2026-05-29/04 (49 hours).
+  Rationale: drop hour=03 on 2026-05-27 (first recording hour, warmup/backfill risk).
+  Most recent complete hour: 2026-05-29/04 (ended 05:00 UTC; current time ~08:42 UTC).
+Starting A2 sync of all missing partitions (~105 new partitions, ~10 GB).
 
 ## NEXT
-Phase 2 — Maker/Taker Decomposition:
-1. Fix market metadata: query Gamma API by condition_id (from pm_clob book events)
-   to populate asset_symbol, horizon, outcome_side, endDate, startDate.
-2. Compute start_strike_price from Binance bookTicker at market startDate.
-3. Compute first-order stats (maker:taker ratio, side balance, fills/market, TTE dist).
-4. Builder fingerprint analysis.
-Acceptance: ACCEPTANCE.md Phase 2 all boxes checked.
-
-**Phase 2 COMPLETE. All acceptance gates pass. Canonical verification done.**
-
-## NEXT — Phase 3: Order Lifecycle Reconstruction
-1. Build level_changes table from pm_clob price_change events
-2. Reconstruct per-order trajectories (quote lifetime, repricing pattern)
-3. Classify: persistent / repricing / pulled
-4. Time-on-book histogram → output/plots/quote_lifetime_histogram.png
-Acceptance: ACCEPTANCE.md Phase 3 all boxes checked.
+A2: Monitor sync progress. Verify all 50 × 4 = 200 partitions cached.
+Then A3: Re-run all Phase 1-3 analyses on the full 49h window.
+Then Part B: Settle event-driven vs passive question.
+Then: Decision rule → Phase 4 start if clean.
 
 ---
 
 ## HISTORY (most recent first)
 
-### 2026-05-29T22:28:00Z — 0.4.4 COMPLETE (Phase 0 acceptance gate)
-All Phase 0 boxes checked. BLOCKER-001 resolved: .env written, make sync
-succeeded (4 feeds), 39 tests pass, mypy strict + ruff clean, GPU confirmed,
-EC2 health check confirmed.
-Commit: feat(phase0): RESOLVED BLOCKER-001 — read-only IAM .env in place, make sync verified.
+### 2026-05-29T08:42:00Z — A1 COMPLETE
+S3 enumeration: 50 partitions per feed, window 2026-05-27/04 – 2026-05-29/04, 49h.
+Commits: f7ef2c6 (pre-phase4), 2165bd6 (phase3), 66397a6 (canonical+settlement).
 
-### 2026-05-28T16:14:00Z — 0.4.1 COMPLETE
-Created directory structure. .gitignore, pyproject.toml, README.md written.
-All working documents, Python package scaffold, 37 tests written.
-GPU confirmed (CUDA=True, RTX 3060, cu124). EC2 active.
-Commit: feat(phase0): bootstrap reverse-engineering project structure.
+### 2026-05-29T02:28:00Z — Phase 2+3 COMPLETE
+Phase 2: 100% maker, 83.4% SELL (artifact), +6.9% canonical long-Up, $167k peak exposure,
+0% net-zero final. Phase 3: 0.15% pull rate, median lifetime 26ms, 18.4s flip latency.
+Price-format fix, 17 regression tests passing. 4 pre-Phase-4 tasks done.
+Commits: be228ca, 3adcc7a, 2165bd6, f7ef2c6.
+
+### 2026-05-29T00:20:00Z — Phase 1 COMPLETE
+21,451 fills extracted (2026-05-27). All Phase 1 gates documented.
+Commits: 797f90a, 904e69d.
+
+### 2026-05-28T22:28:00Z — Phase 0 COMPLETE (BLOCKER-001 resolved)
+AWS .env in place, make sync verified, 39 tests pass, GPU confirmed.
+Commits: e3defa4, 73b8cdc.
