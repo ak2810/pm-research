@@ -1,7 +1,26 @@
 ## CURRENT
-**Phase**: Phase 5 COMPLETE (P1 borderline, P2/P3/P4 PASS)
-**Sub-step**: K1-K6 done; BLOCKER-008 logged (temporal shift, not overfitting); Phase 6 next
-**Started**: 2026-05-30T22:00:00Z
+**Phase**: HOLDING PERIOD — ohanism closed, bot2855 on hold
+**Status**: All collectors active. Daily health checks running. No analysis work.
+**Started**: 2026-05-30T20:48:00Z
+
+### Latest health check (2026-05-30 20:48 UTC)
+- V1 collectors: all 4 active, 0 restarts, uptime since 2026-05-27T03:53 UTC
+- V2 EC2 disk: 24 GB free (15% used), no errors
+- V3 S3: all feeds at h19 (age 1.8h) — PASS
+- V4 ohanism: 1004 fills in h19 — active
+- V4 bot2855: 656 fills in h19 — active
+
+### Completed tracks
+- ohanism: Phases 0-7 done, OOT validated, FINAL_STRATEGY_ohanism.md written
+- bot2855: collection verified (B1/B2), analysis ON HOLD until user authorization
+
+### Resume triggers
+- "begin bot2855 Phase 0" → independent bot2855 analysis
+- "build paper-trading harness" → live paper-trading service
+- "extend ohanism analysis" → re-run with accumulated data
+- "begin Phase 8" → only after both bots independently complete
+
+## OLD CURRENT
 
 ### Window state (S1-S5, 2026-05-30T21:25Z)
 - WINDOW_START: 2026-05-27 04:00 UTC
