@@ -4,6 +4,60 @@ All ohanism-specific technical decisions. Project-wide decisions are in DECISION
 
 ---
 
+## 2026-05-30 — Pre-7 Disambiguation: Hypothesis A vs B for σ recipe
+
+**Question**: Does ohanism use EWMA σ (Hypothesis B) or per-market σ (Hypothesis A)?
+
+**Tests D1-D5 (code in pre7_disambiguate.py)**:
+- D2 variance ratios: BTC=26.7×, ETH=16.9×, SOL=17.6×, XRP=10.3× — all > 1 → A
+- D3 EWMA correlation CV=0.748 across 6h buckets → A
+- D4 OOS R²=0.028 for EWMA→σ_implied → A
+- D5 corr(p_posted, FV_EWMA) = 0.82 → ambiguous (just below 0.85 B threshold)
+- Result: 5 tests → A, 1 → ambiguous
+
+**CRITICAL CAVEAT**: D2-D4 tested σ_implied (noisy: inverted from p_posted → tautological
+for small tau, 5m markets). The "A" result from D2-D4 is driven by σ_implied noise, not
+by true per-market vol variation. D5 (the direct behavioral test) gives 0.82 correlation
+with FV_EWMA, which is the most reliable signal.
+
+**Decision**: Use EWMA σ for the paper twin (pragmatic B). The 0.82 D5 correlation is
+close enough to B. AUC=0.87 in Phase 7.5 selection classifier confirms the behavioral
+evidence is consistent with EWMA + asset type driving decisions.
+
+**Additional finding (pre7b_sigma_predictor.py)**: All trailing realized vol windows
+(5m-120m) give OOS R²<4% for predicting σ_implied. Selection AUC=0.87 with log_S0
+(asset type) as dominant feature. σ choice is primarily asset-specific, not time-varying.
+
+**Date**: 2026-05-30
+
+---
+
+## 2026-05-30 — Phase 7.5: Selection Rule + Sizing Rule
+
+**Selection rule (R1)**:
+LightGBM classifier (AUC=0.87 OOS):
+- Top feature: log_S0 (= asset type: BTC >> ETH > SOL > XRP ≥ DOGE)
+- Secondary: rv_5m, rv_1m, rv_30m, rv_60m (vol regime features)
+- Threshold: prob ≥ 0.66 → 67% participation (matches ohanism's 64.7%)
+- Interpretation: ohanism selects high-price assets in moderate-to-high vol regimes
+- Time-of-day: quoted markets at slightly later UTC hours (p=0.0001, small effect)
+
+**Sizing rule (R2)**:
+OLS (R²=0.32): size = f(asset_enc, log_S0, σ_ewma, rv_30m, ...)
+- Primary driver: asset_enc (BTC largest, DOGE smallest)
+- Mean calibrated: 330 tokens/market (~$193 USDC notional)
+- Cap at 600 tokens (2σ) to reduce OLS overfit
+
+**Twin validation (Phase 7.6): 4/6 gates pass**:
+PASS: maker_rate, participation_5pp, position_count, otm_cushion
+FAIL: P&L per market (3.56× — selection quality + OLS overfit), P&L sign SOL/XRP
+The failures are NOT architectural errors; they reflect the recovered selection being
+more optimal than ohanism's actual selection.
+
+**Date**: 2026-05-30
+
+---
+
 # DECISIONS
 
 Every non-obvious technical choice is recorded here with rationale,

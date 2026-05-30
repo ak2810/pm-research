@@ -1,0 +1,56 @@
+{
+  "selection": {
+    "auc_oos": 0.8726,
+    "approach": "classifier",
+    "threshold_for_647pct": 0.6599,
+    "shap_top5": [
+      {
+        "rank": 1,
+        "feature": "log_S0",
+        "mean_abs_shap": 0.0635
+      },
+      {
+        "rank": 2,
+        "feature": "rv_5m",
+        "mean_abs_shap": 0.0062
+      },
+      {
+        "rank": 3,
+        "feature": "rv_1m",
+        "mean_abs_shap": 0.0022
+      },
+      {
+        "rank": 4,
+        "feature": "rv_30m",
+        "mean_abs_shap": 0.0016
+      },
+      {
+        "rank": 5,
+        "feature": "rv_60m",
+        "mean_abs_shap": 0.0016
+      }
+    ]
+  },
+  "sizing": {
+    "r2_ols": 0.3214,
+    "approach": "ols",
+    "mean_tokens": 331.9,
+    "std_tokens": 504.8,
+    "ols_intercept": 4671.2,
+    "ols_coefs": {
+      "tau_y": 0.044,
+      "log_S0": -361.9,
+      "sigma_ewma": 252.694,
+      "rv_30m": -265.423,
+      "ewma_pct_rank": 180.841,
+      "asset_enc": -1573.918,
+      "horizon_enc": -41.454,
+      "concurrent_same_asset": -10.488,
+      "hour_utc": 3.86
+    }
+  },
+  "n_markets_total": 3890,
+  "n_quoted": 2548,
+  "n_declined": 1342,
+  "runtime_min": 0.29
+}

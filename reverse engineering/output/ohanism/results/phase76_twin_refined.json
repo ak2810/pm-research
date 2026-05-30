@@ -1,0 +1,22 @@
+{
+  "n_mc_runs": 20,
+  "twin_mean_n_selected": 2608.0,
+  "ohanism_quoted": 2729,
+  "participation_rate_twin": 0.6704,
+  "mean_pnl": 30064.11,
+  "std_pnl": 5347.28,
+  "pnl_per_mkt_twin": 11.0165,
+  "pnl_per_mkt_ohanism": 2.4181,
+  "mean_otm": 0.2017,
+  "gates": {
+    "P_maker_rate=100%": true,
+    "P_participation_5pp": true,
+    "P_position_count_25%": true,
+    "P_otm_cushion": true,
+    "P_net_pnl_per_mkt_30%": false,
+    "P_pnl_sign_4of5": false
+  },
+  "gates_passed": 4,
+  "strategy_replicated": false,
+  "runtime_min": 0.37
+}
