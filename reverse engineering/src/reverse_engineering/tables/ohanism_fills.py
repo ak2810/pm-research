@@ -31,6 +31,7 @@ from reverse_engineering.io.local_reader import scan_feed
 
 log = structlog.get_logger(__name__)
 
+# Default proxy kept for backward-compat import; new code should pass proxy explicitly
 OHANISM_PROXY: Final[str] = "0x89b5cdaaa4866c1e738406712012a630b4078beb"
 CTF_V2: Final[str] = "0xe111180000d2663c0091e4f400237545b87b996b"
 NEG_RISK_V2: Final[str] = "0xe2222d279d744050d28e00520010520000310f59"
@@ -77,24 +78,29 @@ def _dec6(val: float) -> str:
     return str(Decimal(str(val)).quantize(_SIX_DP, rounding=ROUND_HALF_UP))
 
 
-def extract_raw_fills(date: str, hour: int | None = None) -> pl.LazyFrame:
-    """Lazily scan polygon feed and return ohanism OrderFilled rows.
+def extract_raw_fills(
+    date: str,
+    hour: int | None = None,
+    proxy: str = OHANISM_PROXY,
+) -> pl.LazyFrame:
+    """Lazily scan polygon feed and return fills for the given proxy wallet.
 
     Applies predicate pushdown: event='OrderFilled', exchange in [CTF_V2, NEG_RISK_V2],
-    maker or taker == OHANISM_PROXY.
+    maker or taker == proxy.
 
     Args:
         date: YYYY-MM-DD
         hour: If None, scan all hours for this date.
+        proxy: Proxy wallet address to filter on (default: OHANISM_PROXY).
 
     Returns:
-        LazyFrame with full polygon schema, filtered to ohanism fills.
+        LazyFrame with full polygon schema, filtered to proxy fills.
     """
     lf = scan_feed("polygon", date, hour)
     return lf.filter(
         (pl.col("event") == "OrderFilled")
         & (pl.col("exchange").is_in([CTF_V2, NEG_RISK_V2]))
-        & ((pl.col("maker") == OHANISM_PROXY) | (pl.col("taker") == OHANISM_PROXY))
+        & ((pl.col("maker") == proxy) | (pl.col("taker") == proxy))
     )
 
 
@@ -237,8 +243,9 @@ def _build_ltp_lookup(dates: list[str]) -> pl.DataFrame:
 
 def build_ohanism_fills(
     dates: list[str],
+    proxy: str = OHANISM_PROXY,
 ) -> pl.DataFrame:
-    """Build the complete ohanism_fills table for the given dates.
+    """Build the fills table for a given proxy wallet and date range.
 
     Processes one hour at a time (memory discipline). Enriches with:
     - t_block_ns from RPC batch fetch + cache
@@ -248,6 +255,7 @@ def build_ohanism_fills(
 
     Args:
         dates: List of YYYY-MM-DD dates to process.
+        proxy: Proxy wallet address to filter on (default: OHANISM_PROXY).
 
     Returns:
         DataFrame with schema matching OHANISM_FILLS_COLUMNS.
@@ -257,7 +265,7 @@ def build_ohanism_fills(
     """
     from reverse_engineering.io.catalog import list_local_partitions
 
-    log.info("build_ohanism_fills_start", dates=dates)
+    log.info("build_fills_start", dates=dates, proxy=proxy[:10] + "...")
 
     market_lookup = _build_market_lookup(dates)
     log.info("market_lookup_built", tokens=len(market_lookup))
@@ -268,12 +276,11 @@ def build_ohanism_fills(
     date_set = set(dates)
     partitions = [p for p in list_local_partitions("polygon") if p.date in date_set]
 
-    # Pre-collect all ohanism fills to find all unique block numbers upfront,
-    # then fetch block times in one go (avoids repeated RPC bursts per hour).
+    # Pre-collect fills for block number extraction (avoids repeated RPC bursts).
     log.info("prefetch_fills_for_block_numbers", partitions=len(partitions))
     raw_all_list: list[pl.DataFrame] = []
     for partition in sorted(partitions, key=lambda p: (p.date, p.hour)):
-        df = extract_raw_fills(partition.date, partition.hour).collect()
+        df = extract_raw_fills(partition.date, partition.hour, proxy=proxy).collect()
         if len(df) > 0:
             raw_all_list.append(df)
 
@@ -328,8 +335,8 @@ def build_ohanism_fills(
             .alias("t_ws_method"),
         )
 
-        # is_maker (all observed are maker, but keep generic)
-        raw = raw.with_columns((pl.col("maker") == OHANISM_PROXY).alias("is_maker"))
+        # is_maker: True when the target proxy is the maker of the fill
+        raw = raw.with_columns((pl.col("maker") == proxy).alias("is_maker"))
 
         # ohanism_side: side=0 → taker BUY → ohanism SELL; side=1 → taker SELL → ohanism BUY
         raw = raw.with_columns(

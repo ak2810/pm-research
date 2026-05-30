@@ -1,7 +1,50 @@
-# DECISIONS
+# DECISIONS — Project-wide
 
-Every non-obvious technical choice is recorded here with rationale,
-alternatives considered, and date.
+Every non-obvious technical choice is recorded here with rationale.
+Target-specific decisions are in DECISIONS_ohanism.md and DECISIONS_bot2855.md.
+
+---
+
+## 2026-05-30 — Dual-target isolation policy
+
+**Rule**: Every target bot gets its own complete analytical stack. No shared:
+- fills tables  
+- model fits  
+- methodology conclusions  
+
+until Phase 8 (cross-bot comparison), which starts only after each bot's Phases 1-7
+are independently complete.
+
+**Targets**:
+- ohanism: proxy `0x89b5cdaaa4866c1e738406712012a630b4078beb`
+- bot2855: proxy `0x2855555a48ee7ec2e67272701651bfe77034ebe8`
+
+**Directory layout** (target-scoped; shared cache stays at `output/cache/`):
+```
+output/
+  cache/          ← shared raw feed data (all targets)
+  ohanism/        ← all ohanism analysis artifacts
+    tables/
+    plots/
+    results/
+    models/
+  bot2855/        ← bot2855 analysis artifacts (parallel)
+    tables/
+    plots/
+    results/
+    models/
+```
+
+**Documentation**: `DECISIONS_<target>.md`, `BLOCKERS_<target>.md`, etc.
+Top-level files (DECISIONS.md, BLOCKERS.md, etc.) for project-wide entries only.
+
+**Config parameterization**: `get_settings()` → ohanism. `get_settings_for("bot2855")` → bot2855.
+`Settings.target` field controls all output paths.
+
+**Fills extractor**: `extract_raw_fills(date, hour, proxy=PROXY)` and
+`build_ohanism_fills(dates, proxy=PROXY)` — parameterized by proxy address.
+
+**Date**: 2026-05-30
 
 ---
 

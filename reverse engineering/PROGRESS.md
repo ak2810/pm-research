@@ -59,7 +59,18 @@ Pre-5.C/D/E COMPLETE (2026-05-29T18:30Z):
   E4 PASS (43.6% capital loss plausible in down-market).
 BLOCKER-007 logged as non-blocking. Phase 5 cleared.
 
-## NEXT
+## NEXT (ohanism)
+Phase 6.1 — Extended microstructure features (spot-PM basis, cross-venue lead-lag,
+book imbalance, taker flow, order arrival rate, cross-asset, pin-risk).
+Phase 6.2 — Sequential modeling (Transformer on per-market fill sequence).
+Phase 6.3 — IRL reward recovery.
+
+Dual-target setup now complete:
+- bot2855 scaffolding created, B1-B2 verified, analysis on hold until authorized.
+- Directory refactor done: output/{ohanism,bot2855}/{tables,plots,results,models}
+- Config parameterized: get_settings() → ohanism, get_settings_for('bot2855') → bot2855
+- Fills extractor parameterized: extract_raw_fills(date, hour, proxy=PROXY)
+
 Phase 6 — Layer 4 reinforcement / paper twin synthesis.
 Use Phase 5 replication-critical features:
   {fair_value, otm_cushion, lag_s, spot_z}

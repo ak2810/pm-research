@@ -34,31 +34,41 @@ class Settings(BaseSettings):
     # Polygon RPC (used to derive block timestamps)
     polygon_https_url: str = Field(default="")
 
+    # Target — identifies the bot/strategy under analysis.
+    # All analysis artifacts (tables, plots, results, models) are scoped
+    # to output/<target>/. The shared feed cache is at output/cache/.
+    target: str = Field(default="ohanism")
+
     # Local paths
     @property
     def cache_dir(self) -> Path:
-        """Local Parquet cache synced from S3."""
+        """Local Parquet cache synced from S3 — SHARED across all targets."""
         return Path(__file__).parents[2] / "output" / "cache"
 
     @property
+    def output_dir(self) -> Path:
+        """Target-scoped output root: output/<target>/"""
+        return Path(__file__).parents[2] / "output" / self.target
+
+    @property
     def tables_dir(self) -> Path:
-        """Output tables directory."""
-        return Path(__file__).parents[2] / "output" / "tables"
+        """Target-scoped tables directory."""
+        return self.output_dir / "tables"
 
     @property
     def models_dir(self) -> Path:
-        """Output models directory (gitignored; hash+S3 URI in DECISIONS)."""
-        return Path(__file__).parents[2] / "output" / "models"
+        """Target-scoped models directory (gitignored; hash+S3 URI in DECISIONS)."""
+        return self.output_dir / "models"
 
     @property
     def plots_dir(self) -> Path:
-        """Output plots directory."""
-        return Path(__file__).parents[2] / "output" / "plots"
+        """Target-scoped plots directory."""
+        return self.output_dir / "plots"
 
     @property
     def results_dir(self) -> Path:
-        """Output results directory."""
-        return Path(__file__).parents[2] / "output" / "results"
+        """Target-scoped results directory."""
+        return self.output_dir / "results"
 
     @property
     def s3_prefix(self) -> str:
@@ -79,11 +89,20 @@ class Settings(BaseSettings):
 
 
 _settings: Settings | None = None
+_target_settings: dict[str, Settings] = {}
 
 
 def get_settings() -> Settings:
-    """Return singleton Settings instance."""
+    """Return singleton Settings instance (target='ohanism')."""
     global _settings
     if _settings is None:
         _settings = Settings()
     return _settings
+
+
+def get_settings_for(target: str) -> Settings:
+    """Return Settings for the specified target bot/strategy."""
+    global _target_settings
+    if target not in _target_settings:
+        _target_settings[target] = Settings(target=target)
+    return _target_settings[target]
