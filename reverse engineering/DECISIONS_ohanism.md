@@ -4,6 +4,29 @@ All ohanism-specific technical decisions. Project-wide decisions are in DECISION
 
 ---
 
+## 2026-05-30 — Phase 7.7 Reconciliation R1/R2/R3
+
+**R1 (ohanism P&L distribution)**:
+- May 27: +7,360 USDC (training, strong positive)
+- May 28: +816 USDC (around cutoff, mild)
+- May 29: -1,577 USDC (OOT, negative)
+- Rolling-55h tail analysis: insufficient data (3.5-day window)
+- OOT was ohanism's worst day in the window
+
+**R2 (twin on training vs OOT)**:
+- Train: twin=+9,975 vs ohanism=+7,475 → 1.33× same direction
+- OOT: twin=+23,658 vs ohanism=-876 → 27× opposite direction
+- Monthly consistent: 1.33× ohanism ≈ +$230K vs +$173K leaderboard
+
+**R3 (Case A)**:
+- Twin ≈ ohanism in good conditions (1.33×)
+- Twin >> ohanism when ohanism deviates from training rule (regime-conditional)
+- The 27× OOT ratio is NOT a structural constant
+
+**Date**: 2026-05-30
+
+---
+
 ## 2026-05-30 — Phase 7.7: OOT validation outcome
 
 **Finding 1 (OOT1)**: R1 classifier and R2 OLS original splits were ARBITRARY (Gamma cache

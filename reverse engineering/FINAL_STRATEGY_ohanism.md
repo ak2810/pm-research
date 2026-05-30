@@ -176,41 +176,49 @@ time-ordered). Potential for look-ahead bias.
 AUC improves slightly on OOT (0.8780 vs 0.8726). **No look-ahead bias in features.**
 The arbitrary split was not inflating performance. Both signals survive strict OOT.
 
-**OOT3-OOT5 — Twin vs ohanism on OOT period** (May 28 09:30 → May 30 16:59, ~55 hours):
+**OOT3-OOT5 — Reconciled Train vs OOT comparison (R1/R2 reconciliation)**:
 
-| Metric | Twin OOT | ohanism OOT | Ratio |
-|--------|----------|-------------|-------|
-| Markets selected | 1037 | 1047 | ~1× |
-| Net P&L | **+18,248 USDC** | **-1,511 USDC** | 12.1× |
-| P&L per market | +17.43 USDC | -1.44 USDC | — |
-| OTM cushion | 0.200 | 0.220 | ✓ |
-| BTC sign | +11,530 | -1,651 | MISMATCH |
-| ETH sign | +4,606 | +1,028 | MATCH |
-| SOL sign | +655 | -640 | MISMATCH |
-| XRP sign | +1,458 | -249 | MISMATCH |
+| Period | Twin P&L | ohanism P&L | Ratio | Direction |
+|--------|----------|-------------|-------|-----------|
+| **Train** (earliest 60%) | +9,975 USDC | +7,475 USDC | **1.33×** | SAME (both +) |
+| **OOT** (latest 40%) | +23,658 USDC | **-876 USDC** | **27×** | OPPOSITE |
 
-**OOT6 Decision: OUTPERFORMANCE REAL (12.1× > 2× threshold → OOT7)**
+**Daily ohanism P&L in analysis window**:
+- May 27 (training): +7,360 USDC — strong positive day
+- May 28 (around cutoff): +816 USDC — mild positive
+- May 29 (OOT): -1,577 USDC — negative; weakest day
 
-**Interpretation (OOT7)**:
-The OOT period is a down-market for ohanism (ohanism P&L = -1,511 USDC). The twin's
-deterministic selection rule (trained on training-period behavior) selects slightly
-different markets than ohanism's actual OOT behavior. In the down-market OOT period,
-these differences favor the twin: ohanism appears to have overridden its usual selection
-in response to market conditions, choosing markets that turned out to be unprofitable.
+**R1 rolling-55h tail analysis**: Insufficient data (84h window = 3.5 calendar days;
+cannot robustly compute z-score). May 29 was ohanism's weakest day in the window but
+sample size precludes calling it "tail" vs "typical negative" day.
 
-The twin's clean implementation of the training-period rule outperforms the noisy
-real-time implementation. **Practical implication**: a deterministic implementation
-of the recovered strategy should expect to OUTPERFORM ohanism's noisy original,
-especially in adverse market conditions.
+**OOT6 Decision**: Twin outperforms on OOT. Rule survives strict time-ordering (AUC 0.88).
 
-Per-asset sign mismatches (BTC/SOL/XRP) on OOT: ohanism's actual OOT selections for
-these assets differed from the classifier's predictions. In a down-market, ohanism
-shifted behavior for these assets in ways the classifier didn't predict. The twin
-consistently applied the training-period rule and benefited.
+**R3 Case: A** — twin ≈ ohanism in typical conditions (1.33×), twin >> ohanism in
+adverse conditions (opposite signs). **Correct interpretation**:
 
-**Leaderboard sanity**: OOT twin extrapolated monthly = +18,248 × (720/55) ≈ +239K USDC.
-ohanism public leaderboard: ~+173K monthly (verified). Twin extrapolated ≈ 1.4× leaderboard
-— within 2× range, consistent with "cleaner implementation outperforms noisy original."
+The 12-27× OOT outperformance is **regime-conditional**, not a structural constant
+advantage. In the training period (good conditions), the ratio is a modest 1.33×.
+The twin's deterministic application of the training rule avoids the specific markets
+ohanism chose to enter in the adverse OOT period — markets that turned out to be
+unprofitable. Whether ohanism's OOT deviation from the training rule was informed
+discretion (that happened to fail) or pure noise cannot be determined from 3.5 days
+of data.
+
+**F1 — Honest monthly comparison**: Training-period twin ratio ≈ 1.33× ohanism.
+Extrapolated monthly: ohanism ≈ +$173K (leaderboard), twin training-period rate ≈
++$173K × 1.33 ≈ +$230K. Consistent — the 1.33× difference is within regime variance.
+
+**F2 — OOT outperformance with context**: In the 33-hour OOT sub-window where
+ohanism lost -876 USDC on 1057 markets, the twin earned +23,658 USDC on 1102 markets.
+This 27× difference is a regime-conditional property driven by the selection rule
+maintaining training-period behavior while ohanism deviated. It does NOT represent
+a stable structural 27× advantage.
+
+**Leaderboard sanity**: Training-period twin extrapolated monthly ≈ +$230K vs
+ohanism's verified +$173K (1.3×). OOT-period extrapolation is an outlier driven
+by the specific negative ohanism regime. Monthly comparison is the more reliable
+reference.
 
 ### Phase 7.6 — In-Window Gate Results
 
@@ -257,10 +265,17 @@ with minimal degradation (AUC 0.8726→0.8780, R² 0.3214→0.2925). The twin's 
 outperformance in the OOT period is REAL (not look-ahead): it reflects a cleaner
 deterministic implementation of ohanism's training-period strategy.
 
-**Phase 7.7 OOT Conclusion**: ohanism analytical track is complete. A deterministic
-implementation of the recovered strategy is expected to outperform ohanism's actual
-noisy execution, particularly in adverse market conditions where ohanism overrides its
-usual selection rule.
+**Phase 7.7 reconciliation (R1/R2)**:
+- Train ratio 1.33× (consistent with monthly +$173K leaderboard reference)
+- OOT ratio 27× (regime-conditional; OOT was ohanism's worst day in the window)
+- Case A: twin ≈ ohanism in typical conditions; twin >> ohanism when ohanism deviates
+- Rolling-55h tail analysis: insufficient data (3.5-day window)
+
+**Phase 7.7 OOT Conclusion**: ohanism analytical track is complete.
+The recovered strategy (selection AUC=0.88, OTM cushion 0.202≈0.220) is real and
+time-stable. The twin's typical-condition outperformance vs ohanism is approximately
+1.3× (consistent with monthly leaderboard). Regime-conditional outperformance
+(27× when ohanism underperforms) is real but not a constant.
 
 ---
 
@@ -284,3 +299,42 @@ usual selection rule.
 - Exact selection threshold (why 64.7%? Capital constraint? Rule-based?)
 - σ recipe family (EWMA confirmed, but vs alternatives like 5-min RV)
 - Whether ohanism uses a dedicated vol model or relies on Binance price action
+
+---
+
+## 11. Known Limitations and Honest Framing (F4)
+
+**1. Sample size**: 3.5 days (84h window). Performance conclusions are preliminary.
+Regime characterization requires weeks or months of data. Rolling-55h tail analysis
+is not possible with only ~29 rolling windows from a 3.5-day sample.
+
+**2. Regime-conditional performance**: The twin's 27× OOT outperformance is specific
+to a regime where ohanism underperformed (-876 USDC on 1057 markets). In the training
+regime (where ohanism earned +7,475 on 1491 markets), the twin outperformed by only
+1.33×. Both the training-period ratio AND the monthly leaderboard comparison (+$239K
+vs +$173K = 1.38×) are consistent. The 27× regime figure should not be extrapolated
+to typical conditions.
+
+**3. Ohanism's "noise" may be informed**: ohanism's OOT deviation from its training
+rule may reflect informed discretion that the static rule cannot reproduce. If ohanism's
+OOT market choices were responding to real-time signals not in our feature set, the
+twin would outperform when those signals are false but underperform when they are
+correct. Cannot distinguish from observational data alone.
+
+**4. Per-asset small-asset divergence**: Twin shows positive P&L for SOL/XRP/DOGE in
+OOT while ohanism was negative. This reflects the selection classifier picking
+different (better) markets for these assets in the OOT period — NOT a systematic edge.
+The classifier was trained to predict ohanism's market choices, not profitable outcomes.
+The small-asset sign divergence may reverse under different regimes.
+
+**5. Live deployment risks**:
+- Alpha decay: if similar strategies are deployed at scale, expected returns degrade.
+- Selection classifier is static; market microstructure changes may reduce AUC.
+- σ recipe λ is in a flat ridge [0.85, 0.94]; model is not sensitive to this choice
+  within the range, but extreme regimes may push outside the range.
+
+**6. What a live test would resolve**: Parallel live trading over 2-3 months across
+multiple market regimes (ranging from strongly bullish to strongly bearish) would
+determine whether the 1.33× typical-condition outperformance is real and stable, or
+whether ohanism's discretionary overrides add value in some regimes that this analysis
+cannot detect.

@@ -1,0 +1,16 @@
+{
+  "ohanism_84h_pnl": 6599.12,
+  "ohanism_train_pnl": 7474.7,
+  "ohanism_oot_pnl": -875.58,
+  "rolling_55h_mean": null,
+  "rolling_55h_std": null,
+  "oot_z_score": null,
+  "oot_tail_characterization": "INSUFFICIENT DATA",
+  "twin_train_pnl": 9974.89,
+  "twin_oot_pnl": 23657.62,
+  "train_ratio": 1.334,
+  "oot_ratio": 27.019,
+  "case": "A \u2014 twin \u2248 ohanism in training, twin >> ohanism on OOT",
+  "interpretation": "Recovered rule matches ohanism in typical conditions. OOT outperformance is regime-conditional (down-market where ohanism deviated from its usual rule).",
+  "runtime_min": 0.34
+}
