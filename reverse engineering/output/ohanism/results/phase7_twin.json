@@ -1,0 +1,25 @@
+{
+  "window": "2026-05-27 h4 \u2192 2026-05-30 h17",
+  "twin_markets": 3930,
+  "ohanism_fills": 87158,
+  "expected_adj_markets": 2542,
+  "twin_otm_median": 0.1749,
+  "ohanism_otm": 0.22,
+  "twin_net_pnl": 1505.35,
+  "ohanism_net_pnl": 6599.12,
+  "twin_mtm": 1247.36,
+  "twin_rebate": 257.99,
+  "pnl_ratio": 0.8302,
+  "gates": {
+    "P_maker_rate=100%": true,
+    "P_otm_cushion": false,
+    "P_net_pnl_30pct": false,
+    "P_fill_count_25pct": false,
+    "P_pnl_sign_4of5": false
+  },
+  "all_gates_pass": false,
+  "sigma_recipe": "EWMA lambda=0.94 on 1-min Binance bars",
+  "theta_h0": 0.032582664724614394,
+  "theta_h1": 0.5096835504653309,
+  "runtime_min": 0.46
+}

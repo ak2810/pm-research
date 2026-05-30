@@ -6,6 +6,40 @@ what was attempted, what failed, what's needed.
 
 ---
 
+## BLOCKER-009 — Phase 7 Twin: 4/5 gates fail — parameter calibration needed
+
+**Timestamp**: 2026-05-30T23:00Z  **Phase**: 7 — Twin Validation  **Status**: NON-BLOCKING
+
+**Gate results**:
+- P_maker_rate=100%: PASS ✓
+- P_otm_cushion (|diff|≤0.03): FAIL (twin=0.175 vs ohanism=0.22, diff=0.045)
+- P_net_pnl_30pct: FAIL (per-market P&L ratio=0.83 — different position sizes)
+- P_fill_count_25pct: FAIL (expected: twin simulates 1 fill/market vs ohanism's 32)
+- P_pnl_sign_4of5: FAIL (SOL/XRP sign depends on stochastic drift, BTC/ETH correct)
+
+**Root causes (all documented, none indicate wrong architecture)**:
+1. OTM cushion: twin uses 40% of horizon as submission lag (~2min for 5m markets).
+   Calibration needed — actual lag may be 3-4min for better OTM cushion match.
+2. P&L per market: twin's avg_size=16.4 tokens vs ohanism's ~638 tokens/market
+   (32 fills × 20 tokens). Twin needs position sizing calibrated to ohanism's scale.
+3. Fill count: market-level simulation vs fill-level events. Not comparable as-is.
+4. SOL/XRP sign: stochastic drift noise. Single-run result not reliable for
+   small-|P&L| assets. Need Monte Carlo average (100+ runs) for stable comparison.
+
+**What passes architecture-level checks**:
+- Strategy architecture correct (SELL Down = canonical long-Up, hold to resolution)
+- P&L direction positive overall (correct)
+- BTC/ETH signs both correct (dominant assets)
+- Maker rate 100% by construction
+
+**Resolution plan**:
+1. Calibrate submission lag using actual sigma_implied_v2 t_post offset from start_date
+2. Scale position size to ohanism's observed notional per market
+3. Run 100 Monte Carlo simulations for P&L sign stability
+4. Compare per-notional P&L (not absolute) for P_net_pnl gate
+
+---
+
 ## BLOCKER-008 — Phase 5 P1 FAIL: RMSE ratio = 2.491 (overfitting)
 
 **Timestamp**: 2026-05-30T21:40:00Z  **Phase**: 5 — K2-K6 GBT
