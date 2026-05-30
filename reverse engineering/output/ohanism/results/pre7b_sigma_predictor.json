@@ -1,0 +1,15 @@
+{
+  "best_sigma_predictor": "rv_15m",
+  "best_oos_r2": 0.037,
+  "all_r2": {
+    "rv_5m": -0.0209,
+    "rv_15m": 0.037,
+    "rv_30m": 0.024,
+    "rv_60m": 0.0075,
+    "rv_120m": 0.0356
+  },
+  "selection_rule_n_quoted_with_rv": 2729,
+  "selection_rule_n_declined_with_rv": 1486,
+  "twin_sigma_recipe": "trailing 15m realized vol (annualized) at t_post",
+  "runtime_min": 0.31
+}
