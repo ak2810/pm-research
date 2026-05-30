@@ -368,6 +368,55 @@ Extrapolated monthly = +108,591 USDC vs external +173,508 (ratio 1.6×, plausibl
 
 ---
 
+## 2026-05-30 — STANDING DATA-WINDOW POLICY (applies to all analyses from this point)
+
+**Rule**: Every analysis, test, regression, fit, simulation, plot, or computation uses the full
+available window — never a frozen subset. The window is determined fresh at run time:
+
+- `WINDOW_START` = 2026-05-27 04:00 UTC (drop hour=03 warmup, established in A1)
+- `WINDOW_END`   = latest hour where ALL FOUR feeds (pm_clob, polygon, binance, pm_meta)
+  have a cached partition. Updated every run via S1-S5 below.
+
+**Operational protocol (S1-S5) — runs at the top of every analysis script**:
+
+```
+S1. Re-enumerate S3 partitions for all four feeds.
+S2. Set WINDOW_END = max hour with partitions in all four feeds.
+S3. Sync new partitions (boto3 delta-sync, retries on 429/5xx).
+S4. Optional: pull current in-progress .tmp from EC2 if WINDOW_END > 60min stale.
+S5. Log to PROGRESS.md: window_start, window_end, hours_covered, total partitions,
+    new partitions since last run. THEN run analysis.
+```
+
+**Deviations**: Subset analysis only if explicitly documented in DECISIONS.md with reason.
+Prior "49h window" references are superseded by this rule.
+
+**Why**: Caching is incremental; each run only pays delta cost. Stale windows introduce
+temporal drift and reduce statistical power. Full-window analysis is the default.
+
+**Codified**: 2026-05-30. Applies retroactively to all future scripts.
+
+---
+
+## 2026-05-30 — Canonical-Up price_f policy for Down-token fills
+
+**Rule**: For any computation that requires the canonical Up price from a fill:
+
+```python
+price_f_canonical = (1 - price) if outcome_side == "Down" else price
+```
+
+- `price` in ohanism_fills_full.parquet stores the raw fill price for the traded token:
+  q_D for Down-token fills, p_U for Up-token fills.
+- All MTM, cost-basis, p_observed, and directional computations must use canonical p_f.
+
+**Applies to**: MTM, σ_implied inversion, L2 p_observed, OTM cushion (when in canonical terms),
+directional skew computation. Does NOT affect rebate (min(p, 1-p) is symmetric).
+
+**Source**: BLOCKER-007b root cause analysis (Pre-5.H, 2026-05-29).
+
+---
+
 ## 2026-05-28 — Random seeds
 
 **All random seeds**: `numpy.random.seed(42)`, `sklearn` estimators with

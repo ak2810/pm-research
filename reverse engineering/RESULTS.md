@@ -490,6 +490,50 @@ For Up-token fills (`outcome_side == "Up"`), price = p_U (Up price) → price_f 
 
 **BLOCKER-007b: RESOLVED.** Formula fix applied. Phase 5 cleared.
 
+### Pre-5.I — Canonical-Side Bug Audit (full codebase)
+
+| Location | Needs canonical? | Applied? | Notes |
+|----------|-----------------|---------|-------|
+| phase4_step1_sigma_implied.py | Yes | ✓ Yes | `p_canonical = 1-price if Down else price` (L67-69) |
+| phase4_step1b_sigma_implied_v2.py | Yes | ✓ Yes | Same pattern (L67-70), stored as `p_posted` |
+| phase4_step45_l2_structural.py | Yes | ✓ Yes | Uses `p_obs = p_posted` from sigma_implied_v2 |
+| phase4_step45b_per_asset.py | Yes | ✓ Yes | Same |
+| economic_offsets.py (OTM cushion, AS) | Yes | ✓ Yes | `up_price = 1-price if Down else price` (L56-60) |
+| pre5a_chainlink_mtm.py | Yes | ✓ Fixed | Fixed 2026-05-29 (pre-5.H bug) |
+| pre5de_pnl_verification.py | Yes | ✓ Fixed | Fixed 2026-05-29 |
+| phase4_step46_profitability.py MTM | Yes | ✗ Bug | Same old bug; superseded by pre5a (Binance proxy not authoritative) |
+| inventory.py dollar_exposure | Partial | ✗ Minor | Uses raw token price; affects descriptive stats only, no model input |
+| economic_offsets.py rebate_pct_notional | No | N/A | Diagnostic metric only; min(p,1-p) rebate itself is symmetric |
+| Rebate formula (build_ohanism_fills) | No | ✓ | `min(price, 1-price)` is symmetric — canonical-invariant |
+
+**I3 specific findings**:
+- L2 p_obs: CLEAN (uses sigma_implied_v2 p_posted = canonical) ✓
+- OTM cushion median 0.22: CLEAN (computed from canonical up_price) ✓
+- Canonical_sign direction: CLEAN (purely from side/outcome, no price) ✓
+- σ_implied inversion: CLEAN (step1/1b use p_canonical) ✓
+- Rebate: UNAFFECTED (symmetric formula) ✓
+- Adverse selection: CLEAN (economic_offsets uses canonical) ✓
+
+**Phase 4 θ̂ findings UNCHANGED. No Phase 4 re-run needed.**
+
+### Pre-5.J — Phase 4 Spot-Check
+
+sigma_implied_v2 p_posted distribution: mean=0.504, median=0.47, |p_posted-0.5| median=0.22.
+Same OTM cushion as fills (0.22-0.23) — correct, because ohanism's passive quote is set at the
+OTM price at market open, not at ATM. Post-based and fill-based OTM cushion match.
+Code trace (phase4_step1b L67-70): `p_canonical = 1-price_f if Down else price_f` applied
+before storing `p_posted`. No outcome_side in sigma_implied_v2 (deduplication per market) —
+canonical conversion was correct before dedup.
+
+**J VERDICT: Phase 4 θ̂ is correct. Phase 5 cleared.**
+
+### Window Update (2026-05-30T21:25Z)
+
+- WINDOW_START: 2026-05-27 04:00 UTC
+- WINDOW_END: 2026-05-30 16:59 UTC
+- Hours covered: **84**
+- New partitions synced: 123 partitions in 6.0 min
+
 ### Step 4.6 — Profitability Decomposition
 
 N=16,447 fills with complete P&L (post-time + Binance resolution proxy available).

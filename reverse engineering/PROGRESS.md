@@ -1,9 +1,38 @@
 ## CURRENT
-**Phase**: Pre-5 verification COMPLETE — Phase 5 CLEARED (all gates pass)
-**Sub-step**: Pre-5.G/H complete — formula bug found and fixed — G6 PASS
-**Started**: 2026-05-29T20:00:00Z
+**Phase**: Pre-5.I/J audit complete — Phase 5 CLEARED — ready to start
+**Sub-step**: Standing rule codified, S3 synced, audit clean — starting Phase 5 K1
+**Started**: 2026-05-30T21:25:00Z
+
+### Window state (S1-S5, 2026-05-30T21:25Z)
+- WINDOW_START: 2026-05-27 04:00 UTC
+- WINDOW_END:   2026-05-30 16:59 UTC (latest hour where all 4 feeds cached)
+- Hours covered: 84 (04h 2026-05-27 → 16h 2026-05-30)
+- Partitions: pm_clob=87, polygon=87, binance=87, pm_meta=87 (all feeds at 87 S3; 86 usable for window)
+- New partitions synced this session: 123 (6.0 min)
+- Common window set: 86 date-hour pairs
 
 ## JUST DID
+Pre-5.I/J COMPLETE (2026-05-30T21:25Z): canonical-side audit clean; Phase 4 unaffected.
+
+I-audit findings (code trace on all src/ and scripts/):
+- sigma_implied_v2: p_canonical=1-price for Down fills ✓ (phase4_step1b lines 67-70)
+- L2 structural fit: uses p_obs=p_posted from sigma_implied_v2 ✓
+- OTM cushion (economic_offsets.py): uses up_price=1-price for Down ✓
+- σ_implied inversion (step1/1b): uses p_canonical ✓
+- Rebate formula: min(p,1-p) symmetric — unaffected ✓
+- AS cost (economic_offsets.py): uses canonical up_price ✓
+Three minor non-blocking instances:
+- phase4_step46_profitability.py: same MTM bug but superseded by pre5a (Binance proxy, not used)
+- inventory.py L53: dollar_exposure uses raw token price — affects descriptive stats only, not model inputs
+- economic_offsets.py L85,94: rebate_pct_of_notional uses raw notional — diagnostic metric only
+
+J-spotcheck: p_posted in sigma_implied_v2 confirmed canonical (|p_posted-0.5| median=0.22,
+same OTM cushion as fills — consistent with passive post-once strategy at market open).
+Phase 4 theta_hat stands. No Phase 4 re-run needed.
+
+S1-S5 window update: WINDOW_END=2026-05-30/16. 123 new partitions synced in 6.0 min.
+84h analysis window (2026-05-27/04 → 2026-05-30/16).
+
 Pre-5.G/H COMPLETE (2026-05-29T20:00Z): root cause found and fixed.
 
 Bug: Down-token fills (SELL Down, BUY Down) used price_f=raw_price instead of 1-raw_price.
