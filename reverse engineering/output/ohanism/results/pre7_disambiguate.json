@@ -1,0 +1,54 @@
+{
+  "window_start": "2026-05-27 h4",
+  "window_end": "2026-05-30 h17",
+  "n_markets": 1103,
+  "n_with_ewma": 1103,
+  "d2_variance_ratios": {
+    "BTC": {
+      "ratio": 26.7014,
+      "support": "A"
+    },
+    "ETH": {
+      "ratio": 16.9362,
+      "support": "A"
+    },
+    "SOL": {
+      "ratio": 17.635,
+      "support": "A"
+    },
+    "XRP": {
+      "ratio": 10.3362,
+      "support": "A"
+    }
+  },
+  "d3_corr_cv": 0.7481,
+  "d3_support": "A",
+  "d4_oos_r2": 0.0279,
+  "d4_support": "A",
+  "d5_corr_pposted_fvewma": 0.823,
+  "d5_residual_mean": 0.00847,
+  "d5_residual_std": 0.15114,
+  "d5_support": "ambiguous",
+  "test_summary": {
+    "D2_BTC": "A",
+    "D2_ETH": "A",
+    "D2_SOL": "A",
+    "D3_stability": "A",
+    "D4_OOS_R2": "A",
+    "D5_FV_corr": "ambiguous"
+  },
+  "support_votes": {
+    "A": 5,
+    "B": 0,
+    "ambiguous": 1
+  },
+  "decision": "A",
+  "selection_rule": {
+    "total_available_markets": 4215,
+    "ohanism_quoted": 2729,
+    "pct_quoted": 64.7,
+    "quoted_sigma_ewma_mean": 0.4559,
+    "declined_sigma_ewma_mean": null
+  },
+  "runtime_min": 0.31
+}
