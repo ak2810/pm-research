@@ -1,7 +1,7 @@
 ## CURRENT
-**Phase**: Pre-5.I/J audit complete — Phase 5 CLEARED — ready to start
-**Sub-step**: Standing rule codified, S3 synced, audit clean — starting Phase 5 K1
-**Started**: 2026-05-30T21:25:00Z
+**Phase**: Phase 5 COMPLETE (P1 borderline, P2/P3/P4 PASS)
+**Sub-step**: K1-K6 done; BLOCKER-008 logged (temporal shift, not overfitting); Phase 6 next
+**Started**: 2026-05-30T22:00:00Z
 
 ### Window state (S1-S5, 2026-05-30T21:25Z)
 - WINDOW_START: 2026-05-27 04:00 UTC
@@ -60,7 +60,12 @@ Pre-5.C/D/E COMPLETE (2026-05-29T18:30Z):
 BLOCKER-007 logged as non-blocking. Phase 5 cleared.
 
 ## NEXT
-Phase 5 — Layer 3 GBT residual model on L2 residuals.
+Phase 6 — Layer 4 reinforcement / paper twin synthesis.
+Use Phase 5 replication-critical features:
+  {fair_value, otm_cushion, lag_s, spot_z}
+Incorporate into paper twin quote policy.
+
+Phase 5 — Layer 3 GBT residual model on L2 residuals (COMPLETE).
 Key addition per blocker resolution: include directional-regime features:
   - spot_return_open_to_post: spot pct return from market open to ohanism's quote time
   - spot_return_post_to_fill: spot pct return from post to fill

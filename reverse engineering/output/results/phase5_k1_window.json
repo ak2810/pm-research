@@ -1,0 +1,13 @@
+{
+  "window_start": "2026-05-27 h4",
+  "window_end": "2026-05-30 h17",
+  "hours": 84,
+  "n_fills_total": 87158,
+  "n_fills_with_metadata": 47326,
+  "n_with_outcome": 45421,
+  "total_rebate": 3086.78,
+  "total_mtm": 3512.34,
+  "net_pnl": 6599.12,
+  "g6_pass": true,
+  "poly_outcomes": 31780
+}
