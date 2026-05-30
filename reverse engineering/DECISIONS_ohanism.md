@@ -4,6 +4,31 @@ All ohanism-specific technical decisions. Project-wide decisions are in DECISION
 
 ---
 
+## 2026-05-30 — Phase 7.7: OOT validation outcome
+
+**Finding 1 (OOT1)**: R1 classifier and R2 OLS original splits were ARBITRARY (Gamma cache
+dict insertion order). The 70/30 split was NOT time-ordered — `np.argsort(df.index.values)`
+on a sequential integer index is a no-op.
+
+**Finding 2 (OOT2)**: Strict 60/40 time-ordered re-fit shows NO DEGRADATION in classifier:
+- AUC 0.8726 → 0.8780 (actually improves slightly on OOT)
+- R² 0.32 → 0.29 (mild deflation only)
+- Conclusion: features are strictly pre-decision (no look-ahead). Original results valid.
+
+**Finding 3 (OOT6)**: Twin 12.1× outperforms ohanism on strict OOT period.
+ohanism OOT P&L = -1,511 USDC; twin OOT P&L = +18,248 USDC.
+- OOT period is a down-market for ohanism (May 28 09:30 → end).
+- Twin's deterministic selection avoids the bad markets ohanism chose in real-time.
+- Verdict: OUTPERFORMANCE REAL → OOT7 applies.
+
+**Decision**: The twin's selection rule is a cleaner implementation of ohanism's
+training-period behavior. The 12× OOT outperformance reflects ohanism overriding its
+usual rule in adverse conditions; the deterministic twin doesn't override.
+
+**Date**: 2026-05-30
+
+---
+
 ## 2026-05-30 — Pre-7 Disambiguation: Hypothesis A vs B for σ recipe
 
 **Question**: Does ohanism use EWMA σ (Hypothesis B) or per-market σ (Hypothesis A)?

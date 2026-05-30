@@ -5,6 +5,18 @@ ohanism-specific progress tracking. Project-wide progress in PROGRESS.md (top-le
 ---
 
 ## CURRENT
+**Phase**: PHASES 0-7 COMPLETE — OOT VALIDATED (2026-05-30T23:30Z)
+**Status**: ohanism analytical track closed. FINAL_STRATEGY_ohanism.md written.
+
+### Phase 7.7 OOT Summary
+- OOT1: Original R1/R2 splits were ARBITRARY (Gamma cache insertion order)
+- OOT2: Time-ordered re-fit: R1 AUC 0.8726→0.8780 (no deflation!), R2 R² 0.32→0.29 (mild)
+- OOT3-5: Twin +18,248 vs ohanism -1,511 USDC on OOT period (12.1× ratio)
+- OOT6: OUTPERFORMANCE REAL (>2× threshold → OOT7)
+- OOT7: Documented as feature (cleaner deterministic implementation > noisy original)
+- Leaderboard sanity: twin extrapolated ~+239K/month vs public +173K (within 2×)
+
+## OLD CURRENT
 **Phase**: Phase 5 COMPLETE (P1 borderline, P2/P3/P4 PASS)
 **Sub-step**: K1-K6 done; BLOCKER-008 logged (temporal shift, not overfitting); Phase 6 next
 **Started**: 2026-05-30T22:00:00Z

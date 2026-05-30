@@ -1,0 +1,19 @@
+{
+  "oot1_split_verdict": "ARBITRARY (Gamma cache dict insertion order, not time-sorted)",
+  "oot2_train_pct": 60,
+  "n_train": 2334,
+  "n_oot": 1556,
+  "r1_auc_original": 0.8726,
+  "r1_auc_train_insample": 0.8953,
+  "r1_auc_oot": 0.878,
+  "r2_r2_original": 0.3214,
+  "r2_r2_train_insample": 0.3904,
+  "r2_r2_oot": 0.2925,
+  "twin_oot_pnl": 18248.41,
+  "twin_oot_n_selected": 1037.0,
+  "ohanism_oot_pnl": -1511.4,
+  "ohanism_oot_markets": 1047,
+  "pnl_ratio_oot": 12.074,
+  "oot6_verdict": "OUTPERFORMANCE REAL: twin 12.07x ohanism on OOT data",
+  "runtime_min": 0.37
+}
