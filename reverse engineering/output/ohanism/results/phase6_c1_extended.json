@@ -1,0 +1,117 @@
+{
+  "window_start": "2026-05-27 h4",
+  "window_end": "2026-05-30 h17",
+  "n_markets": 1103,
+  "n_train": 772,
+  "n_test": 331,
+  "rmse_train": 0.01241,
+  "rmse_test": 0.01951,
+  "rmse_ratio": 1.5719,
+  "r2_test": 0.3529,
+  "cv_rmse_5fold": 0.01662,
+  "phase5_r2_baseline": 0.3485,
+  "delta_r2": 0.0044,
+  "p61_no_regression": true,
+  "p61_improvement_5pct": false,
+  "new_feature_shap_fraction": 0.0732,
+  "shap_top15": [
+    {
+      "rank": 1,
+      "feature": "fair_value",
+      "mean_abs_shap": 0.006061,
+      "new": false
+    },
+    {
+      "rank": 2,
+      "feature": "otm_cushion",
+      "mean_abs_shap": 0.002523,
+      "new": false
+    },
+    {
+      "rank": 3,
+      "feature": "lag_s",
+      "mean_abs_shap": 0.001771,
+      "new": false
+    },
+    {
+      "rank": 4,
+      "feature": "spot_z",
+      "mean_abs_shap": 0.00134,
+      "new": false
+    },
+    {
+      "rank": 5,
+      "feature": "log_n_fills",
+      "mean_abs_shap": 0.001086,
+      "new": false
+    },
+    {
+      "rank": 6,
+      "feature": "sigma_hat",
+      "mean_abs_shap": 0.001014,
+      "new": false
+    },
+    {
+      "rank": 7,
+      "feature": "log_S0",
+      "mean_abs_shap": 0.000894,
+      "new": false
+    },
+    {
+      "rank": 8,
+      "feature": "log_tau",
+      "mean_abs_shap": 0.000802,
+      "new": false
+    },
+    {
+      "rank": 9,
+      "feature": "hour_utc",
+      "mean_abs_shap": 0.000754,
+      "new": true
+    },
+    {
+      "rank": 10,
+      "feature": "log_lag_s",
+      "mean_abs_shap": 0.000382,
+      "new": true
+    },
+    {
+      "rank": 11,
+      "feature": "horizon_enc",
+      "mean_abs_shap": 5.1e-05,
+      "new": true
+    },
+    {
+      "rank": 12,
+      "feature": "asset_enc",
+      "mean_abs_shap": 2.1e-05,
+      "new": true
+    },
+    {
+      "rank": 13,
+      "feature": "day_of_week",
+      "mean_abs_shap": 1.7e-05,
+      "new": true
+    },
+    {
+      "rank": 14,
+      "feature": "abs_ret_60s",
+      "mean_abs_shap": 0.0,
+      "new": true
+    },
+    {
+      "rank": 15,
+      "feature": "momentum_aligned",
+      "mean_abs_shap": 0.0,
+      "new": true
+    }
+  ],
+  "critical_features_80pct": [
+    "fair_value",
+    "otm_cushion",
+    "lag_s",
+    "spot_z",
+    "log_n_fills",
+    "sigma_hat"
+  ]
+}
