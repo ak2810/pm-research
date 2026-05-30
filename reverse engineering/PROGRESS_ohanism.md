@@ -1,6 +1,6 @@
-﻿# PROGRESS — ohanism (0x89b5cdaaa4866c1e738406712012a630b4078beb)
+# PROGRESS — ohanism (0x89b5cdaaa4866c1e738406712012a630b4078beb)
 
-ohanism-specific progress. Project-wide progress in PROGRESS.md (top-level).
+ohanism-specific progress tracking. Project-wide progress in PROGRESS.md (top-level).
 
 ---
 
@@ -12,7 +12,7 @@ ohanism-specific progress. Project-wide progress in PROGRESS.md (top-level).
 ### Window state (S1-S5, 2026-05-30T21:25Z)
 - WINDOW_START: 2026-05-27 04:00 UTC
 - WINDOW_END:   2026-05-30 16:59 UTC (latest hour where all 4 feeds cached)
-- Hours covered: 84 (04h 2026-05-27 â†’ 16h 2026-05-30)
+- Hours covered: 84 (04h 2026-05-27 → 16h 2026-05-30)
 - Partitions: pm_clob=87, polygon=87, binance=87, pm_meta=87 (all feeds at 87 S3; 86 usable for window)
 - New partitions synced this session: 123 (6.0 min)
 - Common window set: 86 date-hour pairs
@@ -21,23 +21,23 @@ ohanism-specific progress. Project-wide progress in PROGRESS.md (top-level).
 Pre-5.I/J COMPLETE (2026-05-30T21:25Z): canonical-side audit clean; Phase 4 unaffected.
 
 I-audit findings (code trace on all src/ and scripts/):
-- sigma_implied_v2: p_canonical=1-price for Down fills âœ“ (phase4_step1b lines 67-70)
-- L2 structural fit: uses p_obs=p_posted from sigma_implied_v2 âœ“
-- OTM cushion (economic_offsets.py): uses up_price=1-price for Down âœ“
-- Ïƒ_implied inversion (step1/1b): uses p_canonical âœ“
-- Rebate formula: min(p,1-p) symmetric â€” unaffected âœ“
-- AS cost (economic_offsets.py): uses canonical up_price âœ“
+- sigma_implied_v2: p_canonical=1-price for Down fills ✓ (phase4_step1b lines 67-70)
+- L2 structural fit: uses p_obs=p_posted from sigma_implied_v2 ✓
+- OTM cushion (economic_offsets.py): uses up_price=1-price for Down ✓
+- σ_implied inversion (step1/1b): uses p_canonical ✓
+- Rebate formula: min(p,1-p) symmetric — unaffected ✓
+- AS cost (economic_offsets.py): uses canonical up_price ✓
 Three minor non-blocking instances:
 - phase4_step46_profitability.py: same MTM bug but superseded by pre5a (Binance proxy, not used)
-- inventory.py L53: dollar_exposure uses raw token price â€” affects descriptive stats only, not model inputs
-- economic_offsets.py L85,94: rebate_pct_of_notional uses raw notional â€” diagnostic metric only
+- inventory.py L53: dollar_exposure uses raw token price — affects descriptive stats only, not model inputs
+- economic_offsets.py L85,94: rebate_pct_of_notional uses raw notional — diagnostic metric only
 
 J-spotcheck: p_posted in sigma_implied_v2 confirmed canonical (|p_posted-0.5| median=0.22,
-same OTM cushion as fills â€” consistent with passive post-once strategy at market open).
+same OTM cushion as fills — consistent with passive post-once strategy at market open).
 Phase 4 theta_hat stands. No Phase 4 re-run needed.
 
 S1-S5 window update: WINDOW_END=2026-05-30/16. 123 new partitions synced in 6.0 min.
-84h analysis window (2026-05-27/04 â†’ 2026-05-30/16).
+84h analysis window (2026-05-27/04 → 2026-05-30/16).
 
 Pre-5.G/H COMPLETE (2026-05-29T20:00Z): root cause found and fixed.
 
@@ -54,61 +54,49 @@ CORRECTED RESULTS:
 
 Pre-5.F COMPLETE (2026-05-29T19:30Z): per-position formula validated against data-api.
 All 4 resolved positions: gap < 1% (0.3-0.7%). F5 PASS. BLOCKER-007 RESOLVED.
-Leaderboard -1,382 is 24h rolling metric (not 49h window figure) â€” no contradiction.
+Leaderboard -1,382 is 24h rolling metric (not 49h window figure) — no contradiction.
 Formula for -83,831 USDC window P&L is confirmed correct.
 
 Pre-5.C/D/E COMPLETE (2026-05-29T18:30Z):
 - C: Leaderboard PnL = -1,382 USDC lifetime vs our -83,831 window. No windowed endpoint.
-  60Ã— magnitude gap, same sign. Likely accounting methodology difference.
+  60× magnitude gap, same sign. Likely accounting methodology difference.
 - D: D4 PASS (unfavorable markets dominate). D5: all 12 sign checks PASS.
 - E: E3 formula flag (check uses wrong max-loss formula; MTM values themselves verified by D5).
   E4 PASS (43.6% capital loss plausible in down-market).
 BLOCKER-007 logged as non-blocking. Phase 5 cleared.
 
-## NEXT (ohanism)
-Phase 6.1 â€” Extended microstructure features (spot-PM basis, cross-venue lead-lag,
-book imbalance, taker flow, order arrival rate, cross-asset, pin-risk).
-Phase 6.2 â€” Sequential modeling (Transformer on per-market fill sequence).
-Phase 6.3 â€” IRL reward recovery.
-
-Dual-target setup now complete:
-- bot2855 scaffolding created, B1-B2 verified, analysis on hold until authorized.
-- Directory refactor done: output/{ohanism,bot2855}/{tables,plots,results,models}
-- Config parameterized: get_settings() â†’ ohanism, get_settings_for('bot2855') â†’ bot2855
-- Fills extractor parameterized: extract_raw_fills(date, hour, proxy=PROXY)
-
-Phase 6 â€” Layer 4 reinforcement / paper twin synthesis.
+## NEXT
+Phase 6 — Layer 4 reinforcement / paper twin synthesis.
 Use Phase 5 replication-critical features:
   {fair_value, otm_cushion, lag_s, spot_z}
 Incorporate into paper twin quote policy.
 
-Phase 5 â€” Layer 3 GBT residual model on L2 residuals (COMPLETE).
+Phase 5 — Layer 3 GBT residual model on L2 residuals (COMPLETE).
 Key addition per blocker resolution: include directional-regime features:
   - spot_return_open_to_post: spot pct return from market open to ohanism's quote time
   - spot_return_post_to_fill: spot pct return from post to fill
   - rolling_dir_5m: rolling % of preceding 5m windows where Up wins
-Features in: METHODOLOGY Â§6.1 (spot-PM basis, lead-lag, book imbalance) + these 3 new.
-Acceptance gate: GBT â‰¥ 5% additional variance explained over L2.
+Features in: METHODOLOGY §6.1 (spot-PM basis, lead-lag, book imbalance) + these 3 new.
+Acceptance gate: GBT ≥ 5% additional variance explained over L2.
 
 ---
 
 ## HISTORY (most recent first)
 
-### 2026-05-29T08:42:00Z â€” A1 COMPLETE
-S3 enumeration: 50 partitions per feed, window 2026-05-27/04 â€“ 2026-05-29/04, 49h.
+### 2026-05-29T08:42:00Z — A1 COMPLETE
+S3 enumeration: 50 partitions per feed, window 2026-05-27/04 – 2026-05-29/04, 49h.
 Commits: f7ef2c6 (pre-phase4), 2165bd6 (phase3), 66397a6 (canonical+settlement).
 
-### 2026-05-29T02:28:00Z â€” Phase 2+3 COMPLETE
+### 2026-05-29T02:28:00Z — Phase 2+3 COMPLETE
 Phase 2: 100% maker, 83.4% SELL (artifact), +6.9% canonical long-Up, $167k peak exposure,
 0% net-zero final. Phase 3: 0.15% pull rate, median lifetime 26ms, 18.4s flip latency.
 Price-format fix, 17 regression tests passing. 4 pre-Phase-4 tasks done.
 Commits: be228ca, 3adcc7a, 2165bd6, f7ef2c6.
 
-### 2026-05-29T00:20:00Z â€” Phase 1 COMPLETE
+### 2026-05-29T00:20:00Z — Phase 1 COMPLETE
 21,451 fills extracted (2026-05-27). All Phase 1 gates documented.
 Commits: 797f90a, 904e69d.
 
-### 2026-05-28T22:28:00Z â€” Phase 0 COMPLETE (BLOCKER-001 resolved)
+### 2026-05-28T22:28:00Z — Phase 0 COMPLETE (BLOCKER-001 resolved)
 AWS .env in place, make sync verified, 39 tests pass, GPU confirmed.
 Commits: e3defa4, 73b8cdc.
-

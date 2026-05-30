@@ -1,0 +1,14 @@
+{
+  "phase5_gbt_rmse": 0.01957,
+  "p62_target_rmse": 0.017613,
+  "significant_autocorr_lags": [
+    8
+  ],
+  "ar3_test_rmse": 0.0246,
+  "ar3_r2_test": -0.029,
+  "ar3_vs_gbt_ratio": 1.2569,
+  "transformer_rmse": 0.02312,
+  "p62_pass": false,
+  "interpretation": "Sequential modeling adds no predictive power. Consistent with passive post-once strategy: each market's quote is set independently based on instantaneous state at t_post. No autocorrelation between consecutive markets' residuals.",
+  "runtime_min": 0.12
+}

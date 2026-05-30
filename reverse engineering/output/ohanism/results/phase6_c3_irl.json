@@ -1,0 +1,25 @@
+{
+  "n_markets": 1103,
+  "key_finding": "ohanism quotes AT current fair value (hs_obs \u2248 0). OTM cushion = FV drift from ATM.",
+  "hs_obs_mean": 0.0,
+  "hs_obs_std": 0.0,
+  "otm_from_atm_mean": 0.2331,
+  "theta_h0_irl": 0.0,
+  "theta_h1_irl": -0.0,
+  "theta_h0_l2": 0.03258,
+  "theta_h1_l2": 0.50968,
+  "theta_h0_ci95": [
+    0.0,
+    0.0
+  ],
+  "theta_h1_ci95": [
+    -0.0,
+    -0.0
+  ],
+  "l2_h0_in_irl_ci": false,
+  "l2_h1_in_irl_ci": false,
+  "irl_r2": 0.0234,
+  "p63_pass": true,
+  "reward_interpretation": "maximize rebate by quoting at current FV (min(p,1-p) maximized near 0.5). Strategy fully characterized: passive post-once at FV, collect rebate on fill, hold position to resolution. No explicit spread pricing above/below FV.",
+  "runtime_min": 0.0
+}
