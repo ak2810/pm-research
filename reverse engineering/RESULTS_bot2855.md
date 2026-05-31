@@ -1,4 +1,4 @@
-﻿# RESULTS — bot2855 (0x2855555a48ee7ec2e67272701651bfe77034ebe8)
+# RESULTS — bot2855 (0x2855555a48ee7ec2e67272701651bfe77034ebe8)
 
 No results yet. Analysis paused pending user authorization.
 
@@ -7,7 +7,7 @@ No results yet. Analysis paused pending user authorization.
 **B1 — Collection verification**:
 - Fill count in last 30 partitions: 13,042 (comparable to ohanism ~13,143)
 - Fill rate: ~440-500 fills/hr
-- Result: COLLECTION VERIFIED
+- Result: COLLECTION VERIFIED ✓
 
 **B2 — Public metadata**:
 - Account created: 2026-03-28
