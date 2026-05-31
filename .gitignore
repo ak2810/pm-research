@@ -40,3 +40,6 @@ notebooks/.ipynb_checkpoints/
 # OS
 .DS_Store
 Thumbs.db
+
+# Claude Code internal state — runtime lock/session files, never committed
+.claude/

@@ -1,0 +1,48 @@
+{
+  "timestamp": "2026-05-28T23:48:39.410679+00:00",
+  "phase": 2,
+  "first_order_stats": {
+    "total_fills": 21451,
+    "maker_count": 21451,
+    "taker_count": 0,
+    "maker_pct": 100.0,
+    "sell_count": 17895,
+    "buy_count": 3556,
+    "sell_pct": 83.42,
+    "buy_pct": 16.58,
+    "sell_notional": 341437.46,
+    "buy_notional": 75633.61,
+    "unique_tokens": 1651,
+    "fills_per_token_median": 6.0,
+    "fills_per_token_max": 167,
+    "fills_per_token_p90": 33.0,
+    "top_builder": "0000000000000000000000000000000000000000000000000000000000000000",
+    "direct_submission_pct": 100.0,
+    "price_percentiles": {
+      "p5": 0.11,
+      "p25": 0.37,
+      "p50": 0.62,
+      "p75": 0.78,
+      "p95": 0.91
+    },
+    "horizon_distribution": {
+      "null": 21451
+    },
+    "asset_distribution": {
+      "null": 21451
+    }
+  },
+  "exposure_stats": {
+    "max_exposure": 167058.9974645738,
+    "mean_exposure": 85039.12774341278,
+    "p90_exposure": 150783.8850868938,
+    "p95_exposure": 159900.4714186788
+  },
+  "peak_inventory_stats": {
+    "median_peak_abs": 85.57000000000001,
+    "p90_peak_abs": 558.7301540000001,
+    "p95_peak_abs": 774.2065429999998,
+    "pct_net_zero": 0.0,
+    "median_final_abs": 74.75718799999993
+  }
+}

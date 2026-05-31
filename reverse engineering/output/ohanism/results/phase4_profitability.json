@@ -1,0 +1,13 @@
+{
+  "n_complete": 16447,
+  "n_rebate_only": 48258,
+  "total_rebate_usdc": 1050.4366320000001,
+  "total_mtm_usdc": -22894.512434910604,
+  "total_as_usdc": -6.091313798213913,
+  "net_pnl_usdc": -21837.98448911239,
+  "net_positive": false,
+  "mean_rebate_per_fill": 0.06386797786830424,
+  "mean_mtm_per_fill": -1.392017537235399,
+  "mean_as_per_fill": -0.000370360174999326,
+  "pct_positive_net": 45.61318173527087
+}

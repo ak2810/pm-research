@@ -1,0 +1,196 @@
+{
+  "window": {
+    "start": "2026-05-27T04:00Z",
+    "end": "2026-05-29T04:59Z",
+    "hours": 49
+  },
+  "old_values": {
+    "window_hours": 20,
+    "fills_total": 21451,
+    "maker_pct": 100.0,
+    "direct_sub_pct": 100.0,
+    "sell_pct_raw": 83.42,
+    "canonical_long_up_net_pct": 6.9,
+    "xrp_5m_long_up_pct": 31.7,
+    "btc_pct": 62.8,
+    "eth_pct": 20.2,
+    "h5m_pct": 74.8,
+    "h15m_pct": 20.5,
+    "peak_exposure_usdc": 167059,
+    "mean_exposure_usdc": 85039,
+    "net_zero_pct": 0.0,
+    "backfill_pct": 90.6,
+    "pmclob_coverage_pct": 72.0,
+    "pull_rate_pct": 0.15,
+    "lifetime_median_ms": 26.0,
+    "lifetime_p90_ms": 573.0,
+    "rebate_mean_usdc": 0.07,
+    "rebate_total_usdc": 1430.0,
+    "otm_cushion_median": 0.22,
+    "otm_cushion_gt01_pct": 78.3,
+    "selection_5m_pct": 61.9,
+    "selection_15m_pct": 60.2,
+    "settlement_burn_count": 365,
+    "settlement_burn_pct_of_traded": 20.3
+  },
+  "new_values": {
+    "window_hours": 49,
+    "fills_total": 50586,
+    "maker_pct": 100.0,
+    "direct_sub_pct": 100.0,
+    "sell_pct_raw": 84.13,
+    "canonical_long_up_net_pct": 11.8,
+    "xrp_5m_long_up_pct": 64.7,
+    "btc_pct": 61.2,
+    "eth_pct": 22.0,
+    "h5m_pct": 75.3,
+    "h15m_pct": 20.1,
+    "peak_exposure_usdc": 391270.0,
+    "mean_exposure_usdc": 192147.0,
+    "net_zero_pct": 0.0,
+    "backfill_pct": 89.5,
+    "pmclob_coverage_pct": 87.4,
+    "pull_rate_pct": 0.15,
+    "lifetime_median_ms": 26.0,
+    "lifetime_p90_ms": 573.0,
+    "rebate_mean_usdc": 0.0683,
+    "rebate_total_usdc": 3296.31,
+    "otm_cushion_median": 0.23,
+    "otm_cushion_gt01_pct": 79.6,
+    "selection_5m_pct": 65.2,
+    "selection_15m_pct": 62.9,
+    "settlement_burn_count": 805,
+    "settlement_burn_pct_of_traded": 20.5
+  },
+  "changes": {
+    "window_hours": {
+      "old": 20,
+      "new": 49
+    },
+    "fills_total": {
+      "old": 21451,
+      "new": 50586
+    },
+    "maker_pct": {
+      "old": 100.0,
+      "new": 100.0,
+      "delta_pct": 0.0
+    },
+    "direct_sub_pct": {
+      "old": 100.0,
+      "new": 100.0,
+      "delta_pct": 0.0
+    },
+    "sell_pct_raw": {
+      "old": 83.42,
+      "new": 84.13,
+      "delta_pct": 0.9
+    },
+    "canonical_long_up_net_pct": {
+      "old": 6.9,
+      "new": 11.8,
+      "delta_pct": 71.0
+    },
+    "xrp_5m_long_up_pct": {
+      "old": 31.7,
+      "new": 64.7,
+      "delta_pct": 104.1
+    },
+    "btc_pct": {
+      "old": 62.8,
+      "new": 61.2,
+      "delta_pct": -2.5
+    },
+    "eth_pct": {
+      "old": 20.2,
+      "new": 22.0,
+      "delta_pct": 8.9
+    },
+    "h5m_pct": {
+      "old": 74.8,
+      "new": 75.3,
+      "delta_pct": 0.7
+    },
+    "h15m_pct": {
+      "old": 20.5,
+      "new": 20.1,
+      "delta_pct": -2.0
+    },
+    "peak_exposure_usdc": {
+      "old": 167059,
+      "new": 391270.0
+    },
+    "mean_exposure_usdc": {
+      "old": 85039,
+      "new": 192147.0
+    },
+    "net_zero_pct": {
+      "old": 0.0,
+      "new": 0.0
+    },
+    "backfill_pct": {
+      "old": 90.6,
+      "new": 89.5,
+      "delta_pct": -1.2
+    },
+    "pmclob_coverage_pct": {
+      "old": 72.0,
+      "new": 87.4,
+      "delta_pct": 21.4
+    },
+    "pull_rate_pct": {
+      "old": 0.15,
+      "new": 0.15,
+      "delta_pct": 0.0
+    },
+    "lifetime_median_ms": {
+      "old": 26.0,
+      "new": 26.0,
+      "delta_pct": 0.0
+    },
+    "lifetime_p90_ms": {
+      "old": 573.0,
+      "new": 573.0,
+      "delta_pct": 0.0
+    },
+    "rebate_mean_usdc": {
+      "old": 0.07,
+      "new": 0.0683,
+      "delta_pct": -2.4
+    },
+    "rebate_total_usdc": {
+      "old": 1430.0,
+      "new": 3296.31,
+      "delta_pct": 130.5
+    },
+    "otm_cushion_median": {
+      "old": 0.22,
+      "new": 0.23,
+      "delta_pct": 4.5
+    },
+    "otm_cushion_gt01_pct": {
+      "old": 78.3,
+      "new": 79.6,
+      "delta_pct": 1.7
+    },
+    "selection_5m_pct": {
+      "old": 61.9,
+      "new": 65.2,
+      "delta_pct": 5.3
+    },
+    "selection_15m_pct": {
+      "old": 60.2,
+      "new": 62.9,
+      "delta_pct": 4.5
+    },
+    "settlement_burn_count": {
+      "old": 365,
+      "new": 805
+    },
+    "settlement_burn_pct_of_traded": {
+      "old": 20.3,
+      "new": 20.5,
+      "delta_pct": 1.0
+    }
+  }
+}

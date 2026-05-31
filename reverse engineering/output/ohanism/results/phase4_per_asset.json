@@ -1,0 +1,68 @@
+{
+  "N": 997,
+  "theta_hat": {
+    "sigma_recipe": [
+      0.22474713505982327,
+      0.7426550344601728,
+      0.032597822322587,
+      2.6788664489251665e-09,
+      1.4252731944996408e-09,
+      2.1365911853154228e-09,
+      1.916686355761336e-09
+    ],
+    "theta_h": [
+      0.032582664724614394,
+      0.5096835504653309
+    ],
+    "theta_rho": 0.0,
+    "theta_c": [
+      0.0,
+      -0.5
+    ]
+  },
+  "per_asset": {
+    "BTC": {
+      "n": 239,
+      "mean_resid": 0.01619,
+      "se_hac": 0.00913,
+      "t_stat": 1.773,
+      "pval": 0.0775,
+      "significant": false,
+      "rmse": 0.15635
+    },
+    "ETH": {
+      "n": 268,
+      "mean_resid": -0.00813,
+      "se_hac": 0.0105,
+      "t_stat": -0.774,
+      "pval": 0.4394,
+      "significant": false,
+      "rmse": 0.16221
+    },
+    "SOL": {
+      "n": 267,
+      "mean_resid": 0.00483,
+      "se_hac": 0.00776,
+      "t_stat": 0.622,
+      "pval": 0.5342,
+      "significant": false,
+      "rmse": 0.15948
+    },
+    "XRP": {
+      "n": 223,
+      "mean_resid": -0.00979,
+      "se_hac": 0.00971,
+      "t_stat": -1.007,
+      "pval": 0.3148,
+      "significant": false,
+      "rmse": 0.14244
+    },
+    "DOGE": {
+      "n": 0,
+      "mean_resid": null,
+      "significant": false
+    }
+  },
+  "decision": "pooled",
+  "overall_rmse": 0.15582832044965322
+}

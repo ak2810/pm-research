@@ -26,9 +26,17 @@ notebooks/scratch/
 *.pem
 *.key
 
-# Large Parquet outputs (>50MB) — record hash+S3 URI in DECISIONS.md
-# Smaller outputs (<50MB) may be committed
+# Parquet outputs — regenerable from S3; record hash+S3 URI in DECISIONS.md
+# (pre-refactor path kept for safety; new dual-target paths below)
 output/tables/*.parquet
+output/ohanism/cache/
+output/ohanism/tables/*.parquet
+output/ohanism/models/*.pkl
+output/ohanism/models/*.pt
+output/bot2855/cache/
+output/bot2855/tables/*.parquet
+output/bot2855/models/*.pkl
+output/bot2855/models/*.pt
 
 # OS artifacts
 .DS_Store

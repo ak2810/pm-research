@@ -1,0 +1,79 @@
+{
+  "leaderboard_windows_found": {
+    "userName/today/crypto": {
+      "rank": "509750",
+      "pnl": -1104.6928749968065,
+      "vol": 299569.510972,
+      "window": "today",
+      "cat": "crypto"
+    },
+    "userName/today/none": {
+      "rank": "1589658",
+      "pnl": -1104.7076549965736,
+      "vol": 299569.510972,
+      "window": "today",
+      "cat": ""
+    },
+    "userName/weekly/crypto": {
+      "rank": "509750",
+      "pnl": -1104.6928749968065,
+      "vol": 299569.510972,
+      "window": "weekly",
+      "cat": "crypto"
+    },
+    "userName/weekly/none": {
+      "rank": "1589658",
+      "pnl": -1104.7076549965736,
+      "vol": 299569.510972,
+      "window": "weekly",
+      "cat": ""
+    },
+    "userName/monthly/crypto": {
+      "rank": "509750",
+      "pnl": -1104.6928749968065,
+      "vol": 299569.510972,
+      "window": "monthly",
+      "cat": "crypto"
+    },
+    "userName/monthly/none": {
+      "rank": "1589658",
+      "pnl": -1104.7076549965736,
+      "vol": 299569.510972,
+      "window": "monthly",
+      "cat": ""
+    },
+    "userName/all/crypto": {
+      "rank": "509750",
+      "pnl": -1104.6928749968065,
+      "vol": 299569.510972,
+      "window": "all",
+      "cat": "crypto"
+    },
+    "userName/all/none": {
+      "rank": "1589658",
+      "pnl": -1104.7076549965736,
+      "vol": 299569.510972,
+      "window": "all",
+      "cat": ""
+    },
+    "userName/none/crypto": {
+      "rank": "509750",
+      "pnl": -1104.6928749968065,
+      "vol": 299569.510972,
+      "window": "",
+      "cat": "crypto"
+    },
+    "userName/none/none": {
+      "rank": "1589658",
+      "pnl": -1104.7076549965736,
+      "vol": 299569.510972,
+      "window": "",
+      "cat": ""
+    }
+  },
+  "external_monthly_pnl": 173508,
+  "external_weekly_pnl": 26296,
+  "our_window_pnl": -83831,
+  "required_rest_of_month_mtm": 214326.5306122449,
+  "mtm_ratio": 0.17995753536794445
+}

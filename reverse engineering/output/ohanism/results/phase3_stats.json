@@ -1,0 +1,15 @@
+{
+  "total_quote_events": 308891,
+  "pattern_distribution_pct": {
+    "pulled": 0.1,
+    "repricing": 99.9
+  },
+  "lifetime_ms": {
+    "median": 26.0,
+    "p90": 572.8
+  },
+  "quote_flip_latency_ms": {
+    "median": 11629,
+    "note": "from quote_flip.py analysis"
+  }
+}
